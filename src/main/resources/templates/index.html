@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Gestione Impianti Ascensori</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- ✅ Navbar con colori del logo (inline) -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #214F8D;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/img/logo-chiavaroli-ascensori.pdf.png" width="200" height="50" class="me-2">
+                <!-- Su mobile solo logo, da sm in su anche testo -->
+                <span class="d-none d-sm-inline"
+                    style="font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">
+                    Gestione Impianti
+                </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <!-- Link attivo: testo rosso come il logo -->
+                        <a class="nav-link active" aria-current="page" href="/"
+                            style="color:#C73834 !important; font-weight:600;">
+                            Impianti
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- In futuro: nome utente loggato (solo da tablet/pc) -->
+                <span class="navbar-text d-none d-md-inline">
+                    Utente: Admin
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-3" style="padding-bottom:4rem;">
+
+        <!-- Titolo pagina -->
+        <h1 class="h4 mb-3" th:text="${pageTitle}" style="font-weight:700; color:#214F8D;">
+            Gestione Impianti Ascensori
+        </h1>
+
+        <!-- Descrizione breve -->
+        <p class="text-muted small">
+            Seleziona un <strong>luogo</strong> per vedere tutti gli impianti e i relativi interventi.
+        </p>
+
+        <!-- Lista Luoghi (card cliccabili, mobile first) -->
+        <div class="row g-3" th:if="${#lists.isEmpty(luoghi) == false}">
+            <div class="col-12 col-sm-6 col-lg-4" th:each="luogo : ${luoghi}">
+                <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="text-decoration-none text-reset">
+                    <div class="card shadow-sm"
+                        style="cursor:pointer; transition:transform 0.05s ease, box-shadow 0.1s ease;">
+                        <div class="card-body">
+                            <h2 class="h5 mb-1" th:text="${luogo.nome}" style="color:#214F8D; font-weight:700;">
+                                Pescara
+                            </h2>
+                            <p class="small text-muted mb-0" th:text="${luogo.descrizione}">
+                                Zona e note del luogo
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Messaggio se non ci sono luoghi -->
+        <div th:if="${#lists.isEmpty(luoghi)}" class="alert alert-info mt-3">
+            Nessun luogo configurato. Aggiungi almeno un luogo dal pannello admin.
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
