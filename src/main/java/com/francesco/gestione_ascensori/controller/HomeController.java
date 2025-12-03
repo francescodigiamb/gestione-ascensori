@@ -4,18 +4,30 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.francesco.gestione_ascensori.repository.LuogoRepository;
+
+/**
+ * ✅ Controller per la homepage
+ * Mostra la lista dei luoghi (Pescara, Chieti, ecc.)
+ */
 @Controller
 public class HomeController {
 
-    // ✅ Rotta per la homepage
-    // Quando l'utente va su "/", ritorniamo il template "index.html"
+    private final LuogoRepository luogoRepository;
+
+    public HomeController(LuogoRepository luogoRepository) {
+        this.luogoRepository = luogoRepository;
+    }
+
     @GetMapping("/")
     public String home(Model model) {
 
-        // Per ora mettiamo un semplice titolo fittizio da mostrare nella view
+        // Titolo pagina
         model.addAttribute("pageTitle", "Gestione Impianti Ascensori");
 
-        // Ritorna il nome del file in templates: "index.html"
+        // Lista di tutti i luoghi dal DB
+        model.addAttribute("luoghi", luogoRepository.findAll());
+
         return "index";
     }
 }

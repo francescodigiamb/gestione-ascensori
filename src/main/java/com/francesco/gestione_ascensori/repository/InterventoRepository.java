@@ -19,4 +19,8 @@ public interface InterventoRepository extends JpaRepository<Intervento, Long> {
 
     // Interventi filtrati per impianto e stato (es. tutti i DA_FARE)
     List<Intervento> findByImpiantoAndStato(Impianto impianto, StatoIntervento stato);
+
+    // ✅ Conteggio interventi per stato (ci serve per la mini-didascalia)
+    long countByImpiantoAndStato(Impianto impianto, StatoIntervento stato);
+
 }

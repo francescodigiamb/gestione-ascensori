@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Impianti</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Navbar uguale alla homepage -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #214F8D;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/img/logo-chiavaroli-ascensori.png" alt="Chiavaroli Ascensori" style="height:32px;"
+                    class="me-2">
+                <span class="d-none d-sm-inline"
+                    style="font-weight:700; letter-spacing:0.05em; text-transform:uppercase;">
+                    Gestione Impianti
+                </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Luoghi</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-3" style="padding-bottom:4rem;">
+
+        <!-- Titolo con nome luogo -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h5 mb-0" th:text="'Impianti - ' + ${luogo.nome}" style="color:#214F8D; font-weight:700;">
+                    Implianti - Pescara
+                </h1>
+                <p class="small text-muted mb-0" th:text="${luogo.descrizione}">
+                    Descrizione luogo
+                </p>
+            </div>
+            <!-- In futuro: pulsante "Nuovo impianto" per admin -->
+        </div>
+
+        <!-- (In futuro qui mettiamo il campo ricerca impianto) -->
+
+        <!-- Lista impianti con mini riepilogo interventi -->
+        <div class="row g-3" th:if="${#lists.isEmpty(impiantiRiepilogo) == false}">
+            <div class="col-12" th:each="item : ${impiantiRiepilogo}">
+                <a th:href="@{/impianti/{id}(id=${item.impianto.id})}" class="text-decoration-none text-reset">
+                    <div class="card shadow-sm" style="cursor:pointer; border-left:4px solid #C73834;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h2 class="h6 mb-1" th:text="${item.impianto.nome}" style="font-weight:600;">
+                                        ASC-PE-001
+                                    </h2>
+                                    <p class="small mb-1 text-muted" th:text="${item.impianto.indirizzo}">
+                                        Via Roma 10, Pescara
+                                    </p>
+                                </div>
+                                <span class="badge bg-light text-dark" th:text="${item.impianto.stato}">
+                                    ATTIVO
+                                </span>
+                            </div>
+
+                            <!-- Mini riepilogo interventi -->
+                            <p class="small mb-0 mt-2">
+                                Interventi completati:
+                                <strong th:text="${item.interventiCompletati}" style="color:#214F8D;">
+                                    0
+                                </strong>
+                                &nbsp;·&nbsp;
+                                Da effettuare:
+                                <strong th:text="${item.interventiDaFare}" style="color:#C73834;">
+                                    0
+                                </strong>
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(impiantiRiepilogo)}" class="alert alert-info mt-3">
+            Nessun impianto registrato per questo luogo.
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
