@@ -32,14 +32,16 @@ public class ImpiantoController {
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
 
-        // Interventi associati
+        // Tutti gli interventi dell'impianto
         List<Intervento> interventi = interventoRepository.findByImpianto(impianto);
 
-        // Calcolo totale dei costi completati
-        BigDecimal totaleCosti = interventi.stream()
-                .filter(i -> i.getStato() == StatoIntervento.COMPLETATO && i.getCosto() != null)
-                .map(Intervento::getCosto)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // Calcolo totale dei costi COMPLETATI (senza lambda/stream)
+        BigDecimal totaleCosti = BigDecimal.ZERO;
+        for (Intervento i : interventi) {
+            if (i.getStato() == StatoIntervento.COMPLETATO && i.getCosto() != null) {
+                totaleCosti = totaleCosti.add(i.getCosto());
+            }
+        }
 
         model.addAttribute("impianto", impianto);
         model.addAttribute("interventi", interventi);

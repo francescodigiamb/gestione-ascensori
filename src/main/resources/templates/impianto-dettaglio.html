@@ -36,6 +36,14 @@
             <span th:text="${impianto.stato}"></span>
         </p>
 
+        <div class="mb-3">
+            <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-sm"
+                style="background-color:#C73834; color:#fff; font-weight:600;">
+                + Aggiungi intervento
+            </a>
+        </div>
+
+
         <!-- Totale costi -->
         <div class="alert alert-secondary">
             Totale costi interventi completati:
@@ -50,6 +58,13 @@
                 <div class="d-flex justify-content-between">
                     <strong th:text="${intervento.tipo}"></strong>
                     <span class="badge bg-light text-dark" th:text="${intervento.stato}"></span>
+                </div>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <a th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
+                        class="btn btn-outline-secondary btn-sm">
+                        Modifica
+                    </a>
                 </div>
 
                 <p class="small text-muted mb-1" th:text="${intervento.descrizione}"></p>

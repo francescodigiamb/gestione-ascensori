@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${mode == 'edit'} ? 'Modifica intervento' : 'Nuovo intervento'">
+        Intervento
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#214F8D;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/img/chiavaroli-logo.png" style="height:32px;" class="me-2">
+                <span class="d-none d-sm-inline" style="font-weight:700; text-transform:uppercase;">
+                    Gestione Impianti
+                </span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="container my-3">
+
+        <h1 class="h5 mb-2" th:text="${mode == 'edit'} ? 'Modifica intervento' : 'Nuovo intervento'"
+            style="color:#214F8D; font-weight:700;">
+            Nuovo intervento
+        </h1>
+
+        <p class="small mb-2">
+            <strong>Impianto:</strong>
+            <span th:text="${impianto.nome}">ASC-PE-001</span>
+            <br>
+            <strong>Indirizzo:</strong>
+            <span th:text="${impianto.indirizzo}">Via Roma 10, Pescara</span>
+        </p>
+
+        <form th:action="${formAction}" method="post" class="mt-3">
+
+            <!-- Tipo intervento -->
+            <div class="mb-3">
+                <label class="form-label small">Tipo intervento</label>
+                <select class="form-select form-select-sm" name="tipo" required>
+                    <option th:each="t : ${tipiIntervento}" th:value="${t}" th:text="${t}"
+                        th:selected="${mode == 'edit'} ? (${intervento != null} ? ${intervento.tipo} == ${t} : false) : false">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Stato -->
+            <div class="mb-3">
+                <label class="form-label small">Stato</label>
+                <select class="form-select form-select-sm" name="stato" required>
+                    <option th:each="s : ${statiIntervento}" th:value="${s}" th:text="${s}"
+                        th:selected="${mode == 'edit'} ? (${intervento != null} ? ${intervento.stato} == ${s} : false) : (${s.name() == 'DA_FARE'})">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Descrizione -->
+            <div class="mb-3">
+                <label class="form-label small">Descrizione</label>
+                <textarea class="form-control form-control-sm" name="descrizione" rows="3" required
+                    th:text="${mode == 'edit' and intervento != null} ? ${intervento.descrizione} : ''">
+            </textarea>
+            </div>
+
+            <!-- Costo -->
+            <div class="mb-3">
+                <label class="form-label small">Costo (€)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="costo"
+                    th:value="${mode == 'edit' and intervento != null and intervento.costo != null} ? ${intervento.costo} : ''">
+                <div class="form-text small">
+                    Puoi lasciare vuoto se non vuoi impostare subito il costo.
+                </div>
+            </div>
+
+            <!-- Bottoni -->
+            <div class="d-flex justify-content-between mt-4">
+                <a th:href="@{/impianti/{id}(id=${impianto.id})}" class="btn btn-outline-secondary btn-sm">
+                    Annulla
+                </a>
+                <button type="submit" class="btn btn-sm" style="background-color:#C73834; color:#fff; font-weight:600;">
+                    Salva
+                </button>
+            </div>
+        </form>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
