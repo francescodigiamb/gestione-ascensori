@@ -48,7 +48,13 @@
                     Descrizione luogo
                 </p>
             </div>
-            <!-- In futuro: pulsante "Nuovo impianto" per admin -->
+            <!-- ✅ Pulsante "Nuovo impianto" -->
+            <div>
+                <a th:href="@{/luoghi/{id}/impianti/nuovo(id=${luogo.id})}" class="btn btn-sm"
+                    style="background-color:#C73834; color:#fff; font-weight:600;">
+                    + Nuovo impianto
+                </a>
+            </div>
         </div>
 
         <!-- (In futuro qui mettiamo il campo ricerca impianto) -->
