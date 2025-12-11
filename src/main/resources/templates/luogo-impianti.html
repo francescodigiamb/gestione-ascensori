@@ -61,7 +61,22 @@
             </div>
         </div>
 
-        <!-- (In futuro qui mettiamo il campo ricerca impianto) -->
+        <!-- ✅ Ricerca impianto per nome o indirizzo -->
+        <form class="mb-3" method="get" th:action="@{/luoghi/{id}(id=${luogo.id})}">
+
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control" name="q" placeholder="Cerca per nome o indirizzo..."
+                    th:value="${query}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    Cerca
+                </button>
+            </div>
+
+            <p class="small text-muted mt-1" th:if="${query != null and !#strings.isEmpty(query)}">
+                Risultati per: "<span th:text="${query}"></span>"
+            </p>
+        </form>
+
 
         <!-- Lista impianti con mini riepilogo interventi -->
         <div class="row g-3" th:if="${#lists.isEmpty(impiantiRiepilogo) == false}">

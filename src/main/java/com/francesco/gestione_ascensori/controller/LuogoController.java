@@ -33,32 +33,54 @@ public class LuogoController {
     }
 
     @GetMapping("/luoghi/{id}")
-    public String impiantiPerLuogo(@PathVariable Long id, Model model) {
+    public String impiantiPerLuogo(@PathVariable Long id,
+            @RequestParam(name = "q", required = false) String query,
+            Model model) {
 
-        // Carico il luogo o lancio errore se non esiste
+        // Recupero il luogo o errore
         Luogo luogo = luogoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Luogo non trovato: " + id));
 
-        // Tutti gli impianti di quel luogo
+        // Tutti gli impianti del luogo
         List<Impianto> impianti = impiantoRepository.findByLuogo(luogo);
 
-        // ✅ Per ogni impianto calcolo:
-        // - numero interventi COMPLETATO
-        // - numero DA_FARE
-        List<ImpiantoRiepilogo> impiantiRiepilogo = impianti.stream()
-                .map(impianto -> {
-                    long completati = interventoRepository.countByImpiantoAndStato(
-                            impianto, StatoIntervento.COMPLETATO);
-                    long daFare = interventoRepository.countByImpiantoAndStato(
-                            impianto, StatoIntervento.DA_FARE);
+        // Se c'è una query di ricerca, filtro in memoria per nome/indirizzo (senza
+        // lambda)
+        List<Impianto> impiantiFiltrati = new java.util.ArrayList<>();
 
-                    return new ImpiantoRiepilogo(impianto, completati, daFare);
-                })
-                .collect(Collectors.toList());
+        if (query != null && !query.trim().isEmpty()) {
+            String qLower = query.toLowerCase();
+
+            for (Impianto imp : impianti) {
+                String nome = imp.getNome() != null ? imp.getNome().toLowerCase() : "";
+                String indirizzo = imp.getIndirizzo() != null ? imp.getIndirizzo().toLowerCase() : "";
+
+                if (nome.contains(qLower) || indirizzo.contains(qLower)) {
+                    impiantiFiltrati.add(imp);
+                }
+            }
+        } else {
+            // Nessuna ricerca: uso la lista completa
+            impiantiFiltrati = impianti;
+        }
+
+        // Creo la lista di riepiloghi (impianto + conteggi interventi) SENZA lambda
+        List<ImpiantoRiepilogo> impiantiRiepilogo = new java.util.ArrayList<>();
+
+        for (Impianto impianto : impiantiFiltrati) {
+            long completati = interventoRepository.countByImpiantoAndStato(
+                    impianto, StatoIntervento.COMPLETATO);
+            long daFare = interventoRepository.countByImpiantoAndStato(
+                    impianto, StatoIntervento.DA_FARE);
+
+            ImpiantoRiepilogo riepilogo = new ImpiantoRiepilogo(impianto, completati, daFare);
+            impiantiRiepilogo.add(riepilogo);
+        }
 
         model.addAttribute("luogo", luogo);
         model.addAttribute("impiantiRiepilogo", impiantiRiepilogo);
         model.addAttribute("pageTitle", "Impianti - " + luogo.getNome());
+        model.addAttribute("query", query); // per rimettere il testo nel campo di ricerca
 
         return "luogo-impianti";
     }
