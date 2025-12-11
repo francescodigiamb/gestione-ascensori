@@ -60,6 +60,13 @@
         <p class="text-muted small">
             Seleziona un <strong>luogo</strong> per vedere tutti gli impianti e i relativi interventi.
         </p>
+        <!-- Nuobo luogo -->
+        <div class="mb-3">
+            <a href="/luoghi/nuovo" class="btn btn-sm" style="background-color:#C73834; color:#fff; font-weight:600;">
+                + Nuovo luogo
+            </a>
+        </div>
+
 
         <!-- Lista Luoghi (card cliccabili, mobile first) -->
         <div class="row g-3" th:if="${#lists.isEmpty(luoghi) == false}">

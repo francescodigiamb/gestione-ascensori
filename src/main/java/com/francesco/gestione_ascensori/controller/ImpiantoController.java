@@ -108,4 +108,46 @@ public class ImpiantoController {
         return "redirect:/luoghi/" + luogoId;
     }
 
+    // ✅ FORM MODIFICA IMPIANTO
+    @GetMapping("/impianti/{id}/modifica")
+    public String mostraFormModificaImpianto(@PathVariable Long id, Model model) {
+
+        Impianto impianto = impiantoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
+
+        Luogo luogo = impianto.getLuogo();
+
+        model.addAttribute("luogo", luogo);
+        model.addAttribute("impianto", impianto);
+        model.addAttribute("statiImpianto", StatoImpianto.values());
+
+        model.addAttribute("mode", "edit");
+        model.addAttribute("formAction", "/impianti/" + id + "/modifica");
+        model.addAttribute("pageTitle", "Modifica impianto - " + impianto.getNome());
+
+        return "impianto-form";
+    }
+
+    // ✅ SALVA MODIFICA IMPIANTO
+    @PostMapping("/impianti/{id}/modifica")
+    public String salvaModificaImpianto(@PathVariable Long id,
+            @RequestParam("nome") String nome,
+            @RequestParam("indirizzo") String indirizzo,
+            @RequestParam("stato") String stato,
+            @RequestParam(value = "note", required = false) String note) {
+
+        Impianto impianto = impiantoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
+
+        impianto.setNome(nome);
+        impianto.setIndirizzo(indirizzo);
+        impianto.setStato(StatoImpianto.valueOf(stato));
+        impianto.setNote(note);
+
+        impiantoRepository.save(impianto);
+
+        Long luogoId = impianto.getLuogo().getId();
+        return "redirect:/luoghi/" + luogoId;
+    }
+
 }

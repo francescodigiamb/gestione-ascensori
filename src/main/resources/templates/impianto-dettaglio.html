@@ -22,6 +22,11 @@
     </nav>
 
     <main class="container my-3">
+        <!-- Tasto per tornare indietro -->
+        <a th:href="@{/luoghi/{id}(id=${impianto.luogo.id})}" class="btn btn-link btn-sm ps-0">
+            &larr; Torna agli impianti di
+            <span th:text="${impianto.luogo.nome}">Pescara</span>
+        </a>
 
         <!-- Titolo -->
         <h1 class="h5 mb-2" th:text="${impianto.nome}" style="color:#214F8D; font-weight:700;">ASC-PE-001</h1>
@@ -36,12 +41,17 @@
             <span th:text="${impianto.stato}"></span>
         </p>
 
-        <div class="mb-3">
+        <div class="mb-3 d-flex gap-2">
             <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-sm"
                 style="background-color:#C73834; color:#fff; font-weight:600;">
                 + Aggiungi intervento
             </a>
+
+            <a th:href="@{/impianti/{id}/modifica(id=${impianto.id})}" class="btn btn-outline-secondary btn-sm">
+                Modifica impianto
+            </a>
         </div>
+
 
 
         <!-- Totale costi -->
