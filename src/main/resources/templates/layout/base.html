@@ -108,7 +108,12 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/}">
-                        <i class="bi bi-house me-1"></i>Luoghi
+                        <i class="bi bi-house me-1"></i>Home
+                        <!-- Badge alert interventi in scadenza -->
+                        <span th:if="${navbarAlertCount != null and navbarAlertCount > 0 and isHomePage != true}"
+                              class="badge rounded-pill bg-danger ms-1"
+                              style="font-size:0.7rem;"
+                              th:text="${navbarAlertCount}">0</span>
                     </a>
                 </li>
             </ul>

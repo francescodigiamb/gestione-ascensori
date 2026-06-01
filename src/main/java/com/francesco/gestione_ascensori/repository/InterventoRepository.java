@@ -1,26 +1,29 @@
 package com.francesco.gestione_ascensori.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.francesco.gestione_ascensori.model.Impianto;
 import com.francesco.gestione_ascensori.model.Intervento;
 import com.francesco.gestione_ascensori.model.StatoIntervento;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * ✅ Repository per Intervento
- * Gestisce la lettura/scrittura degli interventi di manutenzione.
- */
 public interface InterventoRepository extends JpaRepository<Intervento, Long> {
 
-    // Tutti gli interventi per un certo impianto
     List<Intervento> findByImpianto(Impianto impianto);
 
-    // Interventi filtrati per impianto e stato (es. tutti i DA_FARE)
     List<Intervento> findByImpiantoAndStato(Impianto impianto, StatoIntervento stato);
 
-    // ✅ Conteggio interventi per stato (ci serve per la mini-didascalia)
     long countByImpiantoAndStato(Impianto impianto, StatoIntervento stato);
 
+    long countByStato(StatoIntervento stato);
+
+    @Query("SELECT i FROM Intervento i WHERE i.stato = :stato AND i.dataProgrammata IS NOT NULL AND i.dataProgrammata <= :limite ORDER BY i.dataProgrammata ASC")
+    List<Intervento> findInScadenzaEntro(@Param("stato") StatoIntervento stato, @Param("limite") LocalDateTime limite);
+
+    @Query("SELECT COUNT(i) FROM Intervento i WHERE i.stato = :stato AND i.dataProgrammata IS NOT NULL AND i.dataProgrammata <= :limite")
+    long countInScadenzaEntro(@Param("stato") StatoIntervento stato, @Param("limite") LocalDateTime limite);
 }
