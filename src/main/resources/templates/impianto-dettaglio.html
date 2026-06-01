@@ -1,94 +1,139 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="it">
 
-<head>
-    <meta charset="UTF-8">
-    <title th:text="${pageTitle}">Impianto</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<head th:replace="~{layout/base :: head(${impianto.nome})}"></head>
 
 <body>
+<nav th:replace="~{layout/base :: navbar}"></nav>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#214F8D;">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="/img/logo-chiavaroli-ascensori.png" style="height:32px;" class="me-2">
-                <span class="d-none d-sm-inline" style="font-weight:700; text-transform:uppercase;">Gestione
-                    Impianti</span>
-            </a>
-        </div>
-    </nav>
+<main class="container my-3">
 
-    <main class="container my-3">
-        <!-- Tasto per tornare indietro -->
-        <a th:href="@{/luoghi/{id}(id=${impianto.luogo.id})}" class="btn btn-link btn-sm ps-0">
-            &larr; Torna agli impianti di
-            <span th:text="${impianto.luogo.nome}">Pescara</span>
-        </a>
+    <!-- Back -->
+    <a th:href="@{/luoghi/{id}(id=${impianto.luogo.id})}" class="btn btn-link btn-back ps-0 mb-2">
+        <i class="bi bi-arrow-left me-1"></i><span th:text="${impianto.luogo.nome}">Pescara</span>
+    </a>
 
-        <!-- Titolo -->
-        <h1 class="h5 mb-2" th:text="${impianto.nome}" style="color:#214F8D; font-weight:700;">ASC-PE-001</h1>
-
-        <p class="small mb-1">
-            <strong>Indirizzo:</strong>
-            <span th:text="${impianto.indirizzo}"></span>
-        </p>
-
-        <p class="small mb-3">
-            <strong>Stato:</strong>
-            <span th:text="${impianto.stato}"></span>
-        </p>
-
-        <div class="mb-3 d-flex gap-2">
-            <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-sm"
-                style="background-color:#C73834; color:#fff; font-weight:600;">
-                + Aggiungi intervento
-            </a>
-
-            <a th:href="@{/impianti/{id}/modifica(id=${impianto.id})}" class="btn btn-outline-secondary btn-sm">
-                Modifica impianto
-            </a>
-        </div>
-
-
-
-        <!-- Totale costi -->
-        <div class="alert alert-secondary">
-            Totale costi interventi completati:
-            <strong th:text="${#numbers.formatDecimal(totaleCosti, 2, 'COMMA', 2, 'POINT')}">0.00</strong> €
-        </div>
-
-        <h2 class="h6 mt-4 mb-2">Interventi</h2>
-
-        <div th:each="intervento : ${interventi}" class="card mb-2 shadow-sm">
-            <div class="card-body">
-
-                <div class="d-flex justify-content-between">
-                    <strong th:text="${intervento.tipo}"></strong>
-                    <span class="badge bg-light text-dark" th:text="${intervento.stato}"></span>
+    <!-- Header impianto -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="page-title mb-1" th:text="${impianto.nome}">ASC-PE-001</h1>
+                    <div class="small text-muted">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        <span th:text="${impianto.indirizzo}">Via Roma 10</span>
+                    </div>
                 </div>
+                <span class="badge rounded-pill"
+                      th:classappend="${impianto.stato.name() == 'ATTIVO'} ? 'badge-attivo' : (${impianto.stato.name() == 'SOSPESO'} ? 'badge-sospeso' : 'badge-dismesso')"
+                      th:text="${impianto.stato.label}">Attivo</span>
+            </div>
 
-                <div class="d-flex justify-content-end mt-2">
-                    <a th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
-                        class="btn btn-outline-secondary btn-sm">
-                        Modifica
+            <!-- Note impianto -->
+            <div th:if="${impianto.note != null and !#strings.isEmpty(impianto.note)}"
+                 class="mt-2 small text-muted border-top pt-2">
+                <i class="bi bi-sticky me-1"></i><span th:text="${impianto.note}"></span>
+            </div>
+
+            <!-- Totale costi + azioni -->
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                <div class="small">
+                    <i class="bi bi-currency-euro me-1 text-muted"></i>
+                    Totale completati:
+                    <strong th:text="${#numbers.formatDecimal(totaleCosti, 1, 'COMMA', 2, 'POINT')} + ' €'">0,00 €</strong>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/impianti/{id}/modifica(id=${impianto.id})}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Modifica
                     </a>
+                    <form th:action="@{/impianti/{id}/elimina(id=${impianto.id})}" method="post"
+                          onsubmit="return confirm('Eliminare l\'impianto e tutti i suoi interventi?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </div>
-
-                <p class="small text-muted mb-1" th:text="${intervento.descrizione}"></p>
-
-                <p class="small mb-0">
-                    <strong>Costo:</strong>
-                    <span th:text="${intervento.costo != null ? intervento.costo : '0.00'}"></span> €
-                </p>
             </div>
         </div>
+    </div>
 
-    </main>
+    <!-- Sezione interventi -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="section-heading mb-0">Interventi</div>
+        <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Aggiungi
+        </a>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(interventi)}">
+        <div th:each="intervento : ${interventi}" class="card card-accent-blue">
+            <div class="card-body pb-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <!-- Tipo badge -->
+                        <span class="badge rounded-pill me-1 mb-1"
+                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : 'badge-altro'))"
+                              th:text="${intervento.tipo.label}">Manutenzione</span>
+                        <!-- Stato badge -->
+                        <span class="badge rounded-pill"
+                              th:classappend="${intervento.stato.name() == 'COMPLETATO'} ? 'badge-completato' : (${intervento.stato.name() == 'DA_FARE'} ? 'badge-da-fare' : (${intervento.stato.name() == 'IN_CORSO'} ? 'badge-in-corso' : 'badge-annullato'))"
+                              th:text="${intervento.stato.label}">Da fare</span>
+                    </div>
+                    <!-- Costo -->
+                    <span class="small fw-bold text-muted"
+                          th:if="${intervento.costo != null}"
+                          th:text="${#numbers.formatDecimal(intervento.costo, 1, 'COMMA', 2, 'POINT')} + ' €'">0,00 €</span>
+                </div>
+
+                <!-- Descrizione -->
+                <p class="small mb-1 mt-2" th:text="${intervento.descrizione}"></p>
+
+                <!-- Date -->
+                <div class="d-flex gap-3 flex-wrap mt-1">
+                    <span class="small text-muted" th:if="${intervento.dataProgrammata != null}">
+                        <i class="bi bi-calendar-event me-1"></i>Programmato:
+                        <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy HH:mm')}"></span>
+                    </span>
+                    <span class="small text-muted" th:if="${intervento.dataEsecuzione != null}">
+                        <i class="bi bi-calendar-check me-1"></i>Eseguito:
+                        <span th:text="${#temporals.format(intervento.dataEsecuzione, 'dd/MM/yyyy HH:mm')}"></span>
+                    </span>
+                </div>
+
+                <!-- Note tecnico -->
+                <div th:if="${intervento.noteTecnico != null and !#strings.isEmpty(intervento.noteTecnico)}"
+                     class="small text-muted mt-1 fst-italic">
+                    <i class="bi bi-chat-left-text me-1"></i><span th:text="${intervento.noteTecnico}"></span>
+                </div>
+
+                <!-- Azioni -->
+                <div class="d-flex justify-content-end gap-2 mt-2 pt-2 border-top">
+                    <a th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Modifica
+                    </a>
+                    <form th:action="@{/interventi/{id}/elimina(id=${intervento.id})}" method="post"
+                          onsubmit="return confirm('Eliminare questo intervento?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(interventi)}" class="text-center py-5">
+        <i class="bi bi-tools" style="font-size:2.5rem;color:#d1d5db;"></i>
+        <p class="text-muted mt-2 mb-3">Nessun intervento registrato.</p>
+        <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Aggiungi il primo intervento
+        </a>
+    </div>
+
+</main>
+
+<div th:replace="~{layout/base :: scripts}"></div>
 </body>
-
 </html>

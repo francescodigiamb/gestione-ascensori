@@ -35,15 +35,11 @@ public class ImpiantoController {
 
     @GetMapping("/impianti/{id}")
     public String dettaglioImpianto(@PathVariable Long id, Model model) {
-
-        // Recuperiamo l’impianto o errore
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
 
-        // Tutti gli interventi dell'impianto
         List<Intervento> interventi = interventoRepository.findByImpianto(impianto);
 
-        // Calcolo totale dei costi COMPLETATI (senza lambda/stream)
         BigDecimal totaleCosti = BigDecimal.ZERO;
         for (Intervento i : interventi) {
             if (i.getStato() == StatoIntervento.COMPLETATO && i.getCosto() != null) {
@@ -55,36 +51,26 @@ public class ImpiantoController {
         model.addAttribute("interventi", interventi);
         model.addAttribute("totaleCosti", totaleCosti);
         model.addAttribute("pageTitle", impianto.getNome());
-
         return "impianto-dettaglio";
     }
 
-    // ✅ FORM NUOVO IMPIANTO
     @GetMapping("/luoghi/{luogoId}/impianti/nuovo")
     public String mostraFormNuovoImpianto(@PathVariable Long luogoId, Model model) {
-
-        // Recupero il luogo per associare l'impianto
         Luogo luogo = luogoRepository.findById(luogoId)
                 .orElseThrow(() -> new IllegalArgumentException("Luogo non trovato: " + luogoId));
 
-        // Impianto vuoto solo per eventuali binding futuri
         Impianto impianto = new Impianto();
         impianto.setLuogo(luogo);
 
         model.addAttribute("luogo", luogo);
         model.addAttribute("impianto", impianto);
         model.addAttribute("statiImpianto", StatoImpianto.values());
-
-        // per gestire il titolo del form
         model.addAttribute("mode", "create");
         model.addAttribute("formAction", "/luoghi/" + luogoId + "/impianti/nuovo");
-
-        model.addAttribute("pageTitle", "Nuovo impianto - " + luogo.getNome());
-
+        model.addAttribute("pageTitle", "Nuovo impianto");
         return "impianto-form";
     }
 
-    // ✅ SALVA NUOVO IMPIANTO
     @PostMapping("/luoghi/{luogoId}/impianti/nuovo")
     public String salvaNuovoImpianto(@PathVariable Long luogoId,
             @RequestParam("nome") String nome,
@@ -103,15 +89,11 @@ public class ImpiantoController {
         impianto.setNote(note);
 
         impiantoRepository.save(impianto);
-
-        // Torniamo alla lista impianti di quel luogo
         return "redirect:/luoghi/" + luogoId;
     }
 
-    // ✅ FORM MODIFICA IMPIANTO
     @GetMapping("/impianti/{id}/modifica")
     public String mostraFormModificaImpianto(@PathVariable Long id, Model model) {
-
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
 
@@ -120,15 +102,12 @@ public class ImpiantoController {
         model.addAttribute("luogo", luogo);
         model.addAttribute("impianto", impianto);
         model.addAttribute("statiImpianto", StatoImpianto.values());
-
         model.addAttribute("mode", "edit");
         model.addAttribute("formAction", "/impianti/" + id + "/modifica");
-        model.addAttribute("pageTitle", "Modifica impianto - " + impianto.getNome());
-
+        model.addAttribute("pageTitle", "Modifica impianto");
         return "impianto-form";
     }
 
-    // ✅ SALVA MODIFICA IMPIANTO
     @PostMapping("/impianti/{id}/modifica")
     public String salvaModificaImpianto(@PathVariable Long id,
             @RequestParam("nome") String nome,
@@ -145,9 +124,16 @@ public class ImpiantoController {
         impianto.setNote(note);
 
         impiantoRepository.save(impianto);
-
-        Long luogoId = impianto.getLuogo().getId();
-        return "redirect:/luoghi/" + luogoId;
+        return "redirect:/luoghi/" + impianto.getLuogo().getId();
     }
 
+    @PostMapping("/impianti/{id}/elimina")
+    public String eliminaImpianto(@PathVariable Long id) {
+        Impianto impianto = impiantoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
+        Long luogoId = impianto.getLuogo().getId();
+        interventoRepository.deleteAll(interventoRepository.findByImpianto(impianto));
+        impiantoRepository.delete(impianto);
+        return "redirect:/luoghi/" + luogoId;
+    }
 }
