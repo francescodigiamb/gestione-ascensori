@@ -8,13 +8,9 @@ import com.francesco.gestione_ascensori.model.StatoIntervento;
 import com.francesco.gestione_ascensori.repository.ImpiantoRepository;
 import com.francesco.gestione_ascensori.repository.InterventoRepository;
 import com.francesco.gestione_ascensori.repository.LuogoRepository;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,7 +30,7 @@ public class ImpiantoController {
     }
 
     @GetMapping("/impianti/{id}")
-    public String dettaglioImpianto(@PathVariable Long id, Model model) {
+    public String dettaglio(@PathVariable Long id, Model model) {
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
 
@@ -55,13 +51,11 @@ public class ImpiantoController {
     }
 
     @GetMapping("/luoghi/{luogoId}/impianti/nuovo")
-    public String mostraFormNuovoImpianto(@PathVariable Long luogoId, Model model) {
+    public String formNuovo(@PathVariable Long luogoId, Model model) {
         Luogo luogo = luogoRepository.findById(luogoId)
                 .orElseThrow(() -> new IllegalArgumentException("Luogo non trovato: " + luogoId));
-
         Impianto impianto = new Impianto();
         impianto.setLuogo(luogo);
-
         model.addAttribute("luogo", luogo);
         model.addAttribute("impianto", impianto);
         model.addAttribute("statiImpianto", StatoImpianto.values());
@@ -72,34 +66,31 @@ public class ImpiantoController {
     }
 
     @PostMapping("/luoghi/{luogoId}/impianti/nuovo")
-    public String salvaNuovoImpianto(@PathVariable Long luogoId,
+    public String salvaNuovo(@PathVariable Long luogoId,
             @RequestParam("nome") String nome,
+            @RequestParam(value = "matricola", required = false) String matricola,
             @RequestParam("indirizzo") String indirizzo,
             @RequestParam("stato") String stato,
             @RequestParam(value = "note", required = false) String note) {
 
         Luogo luogo = luogoRepository.findById(luogoId)
                 .orElseThrow(() -> new IllegalArgumentException("Luogo non trovato: " + luogoId));
-
         Impianto impianto = new Impianto();
         impianto.setNome(nome);
+        impianto.setMatricola(matricola);
         impianto.setIndirizzo(indirizzo);
         impianto.setLuogo(luogo);
         impianto.setStato(StatoImpianto.valueOf(stato));
         impianto.setNote(note);
-
         impiantoRepository.save(impianto);
         return "redirect:/luoghi/" + luogoId;
     }
 
     @GetMapping("/impianti/{id}/modifica")
-    public String mostraFormModificaImpianto(@PathVariable Long id, Model model) {
+    public String formModifica(@PathVariable Long id, Model model) {
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
-
-        Luogo luogo = impianto.getLuogo();
-
-        model.addAttribute("luogo", luogo);
+        model.addAttribute("luogo", impianto.getLuogo());
         model.addAttribute("impianto", impianto);
         model.addAttribute("statiImpianto", StatoImpianto.values());
         model.addAttribute("mode", "edit");
@@ -109,26 +100,26 @@ public class ImpiantoController {
     }
 
     @PostMapping("/impianti/{id}/modifica")
-    public String salvaModificaImpianto(@PathVariable Long id,
+    public String salvaModifica(@PathVariable Long id,
             @RequestParam("nome") String nome,
+            @RequestParam(value = "matricola", required = false) String matricola,
             @RequestParam("indirizzo") String indirizzo,
             @RequestParam("stato") String stato,
             @RequestParam(value = "note", required = false) String note) {
 
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
-
         impianto.setNome(nome);
+        impianto.setMatricola(matricola);
         impianto.setIndirizzo(indirizzo);
         impianto.setStato(StatoImpianto.valueOf(stato));
         impianto.setNote(note);
-
         impiantoRepository.save(impianto);
         return "redirect:/luoghi/" + impianto.getLuogo().getId();
     }
 
     @PostMapping("/impianti/{id}/elimina")
-    public String eliminaImpianto(@PathVariable Long id) {
+    public String elimina(@PathVariable Long id) {
         Impianto impianto = impiantoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + id));
         Long luogoId = impianto.getLuogo().getId();

@@ -1,66 +1,60 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="it">
-
 <head th:replace="~{layout/base :: head(${pageTitle})}"></head>
-
 <body>
 <nav th:replace="~{layout/base :: navbar}"></nav>
 
 <main class="container my-3">
 
-    <!-- Back -->
     <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="btn btn-link btn-back ps-0 mb-2">
         <i class="bi bi-arrow-left me-1"></i><span th:text="${luogo.nome}">Pescara</span>
     </a>
 
     <h1 class="page-title mb-1"
-        th:text="${mode == 'create'} ? 'Nuovo impianto' : 'Modifica impianto'">
-        Nuovo impianto
-    </h1>
-    <p class="small text-muted mb-3">
-        Luogo: <strong th:text="${luogo.nome}">Pescara</strong>
-    </p>
+        th:text="${mode == 'create'} ? 'Nuovo impianto' : 'Modifica impianto'">Nuovo impianto</h1>
+    <p class="small text-muted mb-3">Luogo: <strong th:text="${luogo.nome}">Pescara</strong></p>
 
     <div class="card">
         <div class="card-body">
             <form th:action="${formAction}" method="post">
 
-                <div class="mb-3">
-                    <label class="form-label">Nome / Codice impianto</label>
-                    <input type="text" class="form-control" name="nome" required
-                           placeholder="es. ASC-PE-001"
-                           th:value="${impianto != null} ? ${impianto.nome} : ''">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Indirizzo</label>
-                    <input type="text" class="form-control" name="indirizzo" required
-                           placeholder="es. Via Roma 10, Pescara"
-                           th:value="${impianto != null} ? ${impianto.indirizzo} : ''">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Stato impianto</label>
-                    <select class="form-select" name="stato" required>
-                        <option th:each="s : ${statiImpianto}"
-                                th:value="${s}"
-                                th:text="${s.label}"
-                                th:selected="${impianto != null} ? (${impianto.stato} == ${s}) : (${s.name() == 'ATTIVO'})">
-                        </option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Note <span class="text-muted fw-normal">(facoltative)</span></label>
-                    <textarea class="form-control" name="note" rows="3"
-                              placeholder="Informazioni aggiuntive sull'impianto…"
-                              th:text="${impianto != null} ? ${impianto.note} : ''"></textarea>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-8">
+                        <label class="form-label">Nome / Codice impianto</label>
+                        <input type="text" class="form-control" name="nome" required
+                               placeholder="es. ASC-PE-001"
+                               th:value="${impianto != null} ? ${impianto.nome} : ''">
+                    </div>
+                    <div class="col-12 col-sm-4">
+                        <label class="form-label">Matricola</label>
+                        <input type="text" class="form-control" name="matricola"
+                               placeholder="es. MAT-001-PE"
+                               th:value="${impianto != null} ? ${impianto.matricola} : ''">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Indirizzo</label>
+                        <input type="text" class="form-control" name="indirizzo" required
+                               placeholder="es. Via Roma 10, Pescara"
+                               th:value="${impianto != null} ? ${impianto.indirizzo} : ''">
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label">Stato impianto</label>
+                        <select class="form-select" name="stato" required>
+                            <option th:each="s : ${statiImpianto}" th:value="${s}" th:text="${s.label}"
+                                    th:selected="${impianto != null} ? (${impianto.stato} == ${s}) : (${s.name() == 'ATTIVO'})">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Note <span class="text-muted fw-normal">(facoltative)</span></label>
+                        <textarea class="form-control" name="note" rows="2"
+                                  placeholder="Accesso, scale, riferimenti utili…"
+                                  th:text="${impianto != null} ? ${impianto.note} : ''"></textarea>
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
-                    <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="btn btn-outline-secondary">
-                        Annulla
-                    </a>
+                    <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="btn btn-outline-secondary">Annulla</a>
                     <button type="submit" class="btn btn-ca-primary">
                         <i class="bi bi-floppy me-1"></i>
                         <span th:text="${mode == 'create'} ? 'Crea impianto' : 'Salva modifiche'">Salva</span>
@@ -72,7 +66,6 @@
     </div>
 
 </main>
-
 <div th:replace="~{layout/base :: scripts}"></div>
 </body>
 </html>

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -31,22 +31,20 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
 
-        // Stat cards
-        long impiantiAttivi = impiantoRepository.countByStato(StatoImpianto.ATTIVO);
+        long impiantiAttivi   = impiantoRepository.countByStato(StatoImpianto.ATTIVO);
         long interventiDaFare = interventoRepository.countByStato(StatoIntervento.DA_FARE);
         long interventiInCorso = interventoRepository.countByStato(StatoIntervento.IN_CORSO);
 
-        // Interventi in scadenza o scaduti (DA_FARE con data <= ora+7gg)
-        LocalDateTime fra7Giorni = LocalDateTime.now().plusDays(7);
-        List<Intervento> inScadenza = interventoRepository.findInScadenzaEntro(StatoIntervento.DA_FARE, fra7Giorni);
+        List<Intervento> inScadenza = interventoRepository
+                .findInScadenzaEntro(StatoIntervento.DA_FARE, LocalDate.now().plusDays(7));
 
-        model.addAttribute("impiantiAttivi", impiantiAttivi);
-        model.addAttribute("interventiDaFare", interventiDaFare);
+        model.addAttribute("impiantiAttivi",    impiantiAttivi);
+        model.addAttribute("interventiDaFare",  interventiDaFare);
         model.addAttribute("interventiInCorso", interventiInCorso);
-        model.addAttribute("inScadenza", inScadenza);
-        model.addAttribute("adesso", LocalDateTime.now());
-        model.addAttribute("luoghi", luogoRepository.findAll());
-        model.addAttribute("isHomePage", true);
+        model.addAttribute("inScadenza",        inScadenza);
+        model.addAttribute("oggi",              LocalDate.now());
+        model.addAttribute("luoghi",            luogoRepository.findAll());
+        model.addAttribute("isHomePage",        true);
 
         return "index";
     }

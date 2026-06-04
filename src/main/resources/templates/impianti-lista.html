@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head th:replace="~{layout/base :: head('Impianti')}"></head>
+<body>
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<main class="container my-3">
+
+    <a th:href="@{/}" class="btn btn-link btn-back ps-0 mb-2">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="page-title mb-0">
+            <i class="bi bi-building me-1"></i>Impianti
+            <span th:if="${statoFiltro != null}"
+                  class="badge rounded-pill ms-2"
+                  th:classappend="${statoFiltro.name() == 'ATTIVO'} ? 'badge-attivo' : (${statoFiltro.name() == 'SOSPESO'} ? 'badge-sospeso' : 'badge-dismesso')"
+                  th:text="${statoFiltro.label}"></span>
+        </h1>
+        <!-- Filtri rapidi -->
+        <div class="d-flex gap-1">
+            <a th:href="@{/impianti}" class="btn btn-sm"
+               th:classappend="${statoFiltro == null} ? 'btn-ca-secondary' : 'btn-outline-secondary'">Tutti</a>
+            <a th:each="s : ${statiImpianto}" th:href="@{/impianti(stato=${s.name()})}"
+               class="btn btn-sm"
+               th:classappend="${statoFiltro == s} ? 'btn-ca-secondary' : 'btn-outline-secondary'"
+               th:text="${s.label}">Stato</a>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(impianti)}">
+        <div th:each="impianto : ${impianti}">
+            <a th:href="@{/impianti/{id}(id=${impianto.id})}" class="text-decoration-none">
+                <div class="card card-clickable card-accent-red">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="overflow-hidden me-2">
+                                <div class="fw-bold text-truncate" style="color:#111;" th:text="${impianto.nome}">ASC-PE-001</div>
+                                <div class="small text-muted text-truncate">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <span th:text="${impianto.indirizzo}">Via Roma 10</span>
+                                </div>
+                                <div class="small text-muted" th:if="${impianto.luogo != null}">
+                                    <i class="bi bi-map me-1"></i>
+                                    <span th:text="${impianto.luogo.nome}">Pescara</span>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill flex-shrink-0"
+                                  th:classappend="${impianto.stato.name() == 'ATTIVO'} ? 'badge-attivo' : (${impianto.stato.name() == 'SOSPESO'} ? 'badge-sospeso' : 'badge-dismesso')"
+                                  th:text="${impianto.stato.label}">Attivo</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(impianti)}" class="text-center py-5">
+        <i class="bi bi-building" style="font-size:2.5rem;color:#d1d5db;"></i>
+        <p class="text-muted mt-2">Nessun impianto trovato.</p>
+    </div>
+
+</main>
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

@@ -1,85 +1,74 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="it">
-
 <head th:replace="~{layout/base :: head('Dashboard')}"></head>
-
 <body>
 <nav th:replace="~{layout/base :: navbar}"></nav>
 
 <main class="container my-3">
 
-    <!-- Stat cards -->
+    <!-- Stat cards cliccabili -->
     <div class="row g-2 mb-3">
-
         <div class="col-4">
-            <div class="card text-center p-2">
-                <div class="fw-bold" style="font-size:1.6rem;color:#214F8D;" th:text="${impiantiAttivi}">0</div>
-                <div class="text-muted" style="font-size:0.72rem;">Impianti attivi</div>
-            </div>
+            <a th:href="@{/impianti(stato='ATTIVO')}" class="text-decoration-none">
+                <div class="card text-center p-2 card-clickable">
+                    <div class="fw-bold" style="font-size:1.6rem;color:#214F8D;" th:text="${impiantiAttivi}">0</div>
+                    <div class="text-muted" style="font-size:0.72rem;">Impianti attivi</div>
+                </div>
+            </a>
         </div>
-
         <div class="col-4">
-            <div class="card text-center p-2">
-                <div class="fw-bold" style="font-size:1.6rem;color:#92400e;" th:text="${interventiDaFare}">0</div>
-                <div class="text-muted" style="font-size:0.72rem;">Da fare</div>
-            </div>
+            <a th:href="@{/interventi(stato='DA_FARE')}" class="text-decoration-none">
+                <div class="card text-center p-2 card-clickable">
+                    <div class="fw-bold" style="font-size:1.6rem;color:#92400e;" th:text="${interventiDaFare}">0</div>
+                    <div class="text-muted" style="font-size:0.72rem;">Da fare</div>
+                </div>
+            </a>
         </div>
-
         <div class="col-4">
-            <div class="card text-center p-2">
-                <div class="fw-bold" style="font-size:1.6rem;color:#1e40af;" th:text="${interventiInCorso}">0</div>
-                <div class="text-muted" style="font-size:0.72rem;">In corso</div>
-            </div>
+            <a th:href="@{/interventi(stato='IN_CORSO')}" class="text-decoration-none">
+                <div class="card text-center p-2 card-clickable">
+                    <div class="fw-bold" style="font-size:1.6rem;color:#1e40af;" th:text="${interventiInCorso}">0</div>
+                    <div class="text-muted" style="font-size:0.72rem;">In corso</div>
+                </div>
+            </a>
         </div>
-
     </div>
 
-    <!-- Sezione in scadenza -->
+    <!-- In scadenza / scaduti -->
     <div th:if="${not #lists.isEmpty(inScadenza)}">
         <div class="section-heading d-flex align-items-center gap-2">
-            <i class="bi bi-bell-fill text-danger"></i>
-            In scadenza / Scaduti
+            <i class="bi bi-bell-fill text-danger"></i>In scadenza / Scaduti
         </div>
-
         <div class="d-flex flex-column gap-2 mb-3">
             <div th:each="intervento : ${inScadenza}" class="card" style="border-left:4px solid #C73834;">
                 <div class="card-body py-2 px-3">
-
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="overflow-hidden me-2">
-                            <!-- Nome impianto cliccabile -->
                             <a th:href="@{/impianti/{id}(id=${intervento.impianto.id})}"
                                class="text-decoration-none fw-bold text-truncate d-block"
-                               style="color:#111;"
-                               th:text="${intervento.impianto.nome}">ASC-PE-001</a>
+                               style="color:#111;" th:text="${intervento.impianto.nome}">ASC-PE-001</a>
                             <div class="small text-muted text-truncate">
                                 <i class="bi bi-geo-alt me-1"></i>
                                 <span th:text="${intervento.impianto.indirizzo}">Via Roma 10</span>
                             </div>
                         </div>
-                        <!-- Badge tipo -->
                         <span class="badge rounded-pill flex-shrink-0"
-                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : 'badge-altro'))"
+                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : (${intervento.tipo.name() == 'MONTAGGIO'} ? 'badge-manutenzione' : 'badge-altro')))"
                               th:text="${intervento.tipo.label}">Tipo</span>
                     </div>
-
-                    <!-- Descrizione -->
                     <p class="small mb-1 mt-1 text-truncate" th:text="${intervento.descrizione}"></p>
-
-                    <!-- Data programmata con colore rosso se scaduta -->
                     <div class="small"
-                         th:classappend="${intervento.dataProgrammata.isBefore(adesso)} ? 'text-danger fw-bold' : 'text-muted'">
+                         th:classappend="${intervento.dataProgrammata.isBefore(oggi)} ? 'text-danger fw-bold' : 'text-muted'">
                         <i class="bi bi-calendar-event me-1"></i>
-                        <span th:text="${intervento.dataProgrammata.isBefore(adesso)} ? 'Scaduto il ' : 'Previsto il '">Previsto il </span>
-                        <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:text="${intervento.dataProgrammata.isBefore(oggi)} ? 'Scaduto il ' : 'Previsto il '"></span>
+                        <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy')}"></span>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Sezione luoghi -->
+    <!-- Luoghi -->
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="section-heading mb-0">Luoghi</div>
         <a th:href="@{/luoghi/nuovo}" class="btn btn-ca-primary btn-sm">
@@ -117,7 +106,6 @@
     </div>
 
 </main>
-
 <div th:replace="~{layout/base :: scripts}"></div>
 </body>
 </html>

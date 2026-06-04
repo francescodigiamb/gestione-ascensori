@@ -16,4 +16,6 @@ public interface ImpiantoRepository extends JpaRepository<Impianto, Long> {
             String nome, String indirizzo);
 
     long countByStato(StatoImpianto stato);
+
+    List<Impianto> findByStato(StatoImpianto stato);
 }

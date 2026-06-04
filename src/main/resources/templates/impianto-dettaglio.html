@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="it">
-
 <head th:replace="~{layout/base :: head(${impianto.nome})}"></head>
-
 <body>
 <nav th:replace="~{layout/base :: navbar}"></nav>
 
 <main class="container my-3">
 
-    <!-- Back -->
     <a th:href="@{/luoghi/{id}(id=${impianto.luogo.id})}" class="btn btn-link btn-back ps-0 mb-2">
         <i class="bi bi-arrow-left me-1"></i><span th:text="${impianto.luogo.nome}">Pescara</span>
     </a>
@@ -18,10 +15,13 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <h1 class="page-title mb-1" th:text="${impianto.nome}">ASC-PE-001</h1>
-                    <div class="small text-muted">
-                        <i class="bi bi-geo-alt me-1"></i>
-                        <span th:text="${impianto.indirizzo}">Via Roma 10</span>
+                    <h1 class="page-title mb-0" th:text="${impianto.nome}">ASC-PE-001</h1>
+                    <div class="small text-muted" th:if="${impianto.matricola != null and !#strings.isEmpty(impianto.matricola)}">
+                        <i class="bi bi-upc me-1"></i>Matricola:
+                        <span th:text="${impianto.matricola}"></span>
+                    </div>
+                    <div class="small text-muted mt-1">
+                        <i class="bi bi-geo-alt me-1"></i><span th:text="${impianto.indirizzo}">Via Roma 10</span>
                     </div>
                 </div>
                 <span class="badge rounded-pill"
@@ -29,22 +29,18 @@
                       th:text="${impianto.stato.label}">Attivo</span>
             </div>
 
-            <!-- Note impianto -->
             <div th:if="${impianto.note != null and !#strings.isEmpty(impianto.note)}"
                  class="mt-2 small text-muted border-top pt-2">
                 <i class="bi bi-sticky me-1"></i><span th:text="${impianto.note}"></span>
             </div>
 
-            <!-- Totale costi + azioni -->
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                 <div class="small">
-                    <i class="bi bi-currency-euro me-1 text-muted"></i>
-                    Totale completati:
+                    <i class="bi bi-currency-euro me-1 text-muted"></i>Totale completati:
                     <strong th:text="${#numbers.formatDecimal(totaleCosti, 1, 'COMMA', 2, 'POINT')} + ' €'">0,00 €</strong>
                 </div>
                 <div class="d-flex gap-2">
-                    <a th:href="@{/impianti/{id}/modifica(id=${impianto.id})}"
-                       class="btn btn-outline-secondary btn-sm">
+                    <a th:href="@{/impianti/{id}/modifica(id=${impianto.id})}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-pencil me-1"></i>Modifica
                     </a>
                     <form th:action="@{/impianti/{id}/elimina(id=${impianto.id})}" method="post"
@@ -58,7 +54,7 @@
         </div>
     </div>
 
-    <!-- Sezione interventi -->
+    <!-- Lista interventi -->
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="section-heading mb-0">Interventi</div>
         <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
@@ -69,49 +65,59 @@
     <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(interventi)}">
         <div th:each="intervento : ${interventi}" class="card card-accent-blue">
             <div class="card-body pb-2">
+
+                <!-- Tipo + Stato + Costo -->
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <!-- Tipo badge -->
-                        <span class="badge rounded-pill me-1 mb-1"
-                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : 'badge-altro'))"
-                              th:text="${intervento.tipo.label}">Manutenzione</span>
-                        <!-- Stato badge -->
+                        <span class="badge rounded-pill me-1"
+                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : (${intervento.tipo.name() == 'MONTAGGIO'} ? 'badge-manutenzione' : 'badge-altro')))"
+                              th:text="${intervento.tipo.label}">Tipo</span>
                         <span class="badge rounded-pill"
                               th:classappend="${intervento.stato.name() == 'COMPLETATO'} ? 'badge-completato' : (${intervento.stato.name() == 'DA_FARE'} ? 'badge-da-fare' : (${intervento.stato.name() == 'IN_CORSO'} ? 'badge-in-corso' : 'badge-annullato'))"
-                              th:text="${intervento.stato.label}">Da fare</span>
+                              th:text="${intervento.stato.label}">Stato</span>
                     </div>
-                    <!-- Costo -->
-                    <span class="small fw-bold text-muted"
-                          th:if="${intervento.costo != null}"
-                          th:text="${#numbers.formatDecimal(intervento.costo, 1, 'COMMA', 2, 'POINT')} + ' €'">0,00 €</span>
+                    <span class="small fw-bold text-muted" th:if="${intervento.costo != null}"
+                          th:text="${#numbers.formatDecimal(intervento.costo, 1, 'COMMA', 2, 'POINT')} + ' €'"></span>
                 </div>
 
                 <!-- Descrizione -->
                 <p class="small mb-1 mt-2" th:text="${intervento.descrizione}"></p>
 
-                <!-- Date -->
-                <div class="d-flex gap-3 flex-wrap mt-1">
+                <!-- Date e orari -->
+                <div class="d-flex flex-wrap gap-3 mt-1">
                     <span class="small text-muted" th:if="${intervento.dataProgrammata != null}">
                         <i class="bi bi-calendar-event me-1"></i>Programmato:
-                        <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy')}"></span>
                     </span>
                     <span class="small text-muted" th:if="${intervento.dataEsecuzione != null}">
                         <i class="bi bi-calendar-check me-1"></i>Eseguito:
-                        <span th:text="${#temporals.format(intervento.dataEsecuzione, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:text="${#temporals.format(intervento.dataEsecuzione, 'dd/MM/yyyy')}"></span>
+                    </span>
+                    <span class="small text-muted"
+                          th:if="${intervento.inizioIntervento != null or intervento.fineIntervento != null}">
+                        <i class="bi bi-clock me-1"></i>
+                        <span th:if="${intervento.inizioIntervento != null}"
+                              th:text="${#temporals.format(intervento.inizioIntervento, 'HH:mm')}"></span>
+                        <span th:if="${intervento.inizioIntervento != null and intervento.fineIntervento != null}"> → </span>
+                        <span th:if="${intervento.fineIntervento != null}"
+                              th:text="${#temporals.format(intervento.fineIntervento, 'HH:mm')}"></span>
                     </span>
                 </div>
 
-                <!-- Note tecnico -->
+                <!-- Rapportino -->
                 <div th:if="${intervento.noteTecnico != null and !#strings.isEmpty(intervento.noteTecnico)}"
-                     class="small text-muted mt-1 fst-italic">
-                    <i class="bi bi-chat-left-text me-1"></i><span th:text="${intervento.noteTecnico}"></span>
+                     class="small text-muted mt-2 p-2 rounded" style="background:#f8f9fa;">
+                    <div class="fw-bold mb-1" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
+                        <i class="bi bi-file-text me-1"></i>Rapportino
+                    </div>
+                    <span th:text="${intervento.noteTecnico}"></span>
                 </div>
 
                 <!-- Azioni -->
                 <div class="d-flex justify-content-end gap-2 mt-2 pt-2 border-top">
                     <a th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
                        class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-pencil me-1"></i>Modifica
+                        <i class="bi bi-file-text me-1"></i>Apri scheda
                     </a>
                     <form th:action="@{/interventi/{id}/elimina(id=${intervento.id})}" method="post"
                           onsubmit="return confirm('Eliminare questo intervento?')">
@@ -120,6 +126,7 @@
                         </button>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
@@ -133,7 +140,6 @@
     </div>
 
 </main>
-
 <div th:replace="~{layout/base :: scripts}"></div>
 </body>
 </html>

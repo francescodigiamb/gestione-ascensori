@@ -1,22 +1,17 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="it">
-
-<head th:replace="~{layout/base :: head(${mode == 'edit'} ? 'Modifica intervento' : 'Nuovo intervento')}"></head>
-
+<head th:replace="~{layout/base :: head(${mode == 'edit'} ? 'Scheda intervento' : 'Nuovo intervento')}"></head>
 <body>
 <nav th:replace="~{layout/base :: navbar}"></nav>
 
 <main class="container my-3">
 
-    <!-- Back -->
     <a th:href="@{/impianti/{id}(id=${impianto.id})}" class="btn btn-link btn-back ps-0 mb-2">
         <i class="bi bi-arrow-left me-1"></i><span th:text="${impianto.nome}">ASC-PE-001</span>
     </a>
 
     <h1 class="page-title mb-1"
-        th:text="${mode == 'edit'} ? 'Modifica intervento' : 'Nuovo intervento'">
-        Nuovo intervento
-    </h1>
+        th:text="${mode == 'edit'} ? 'Scheda intervento' : 'Nuovo intervento'">Nuovo intervento</h1>
     <p class="small text-muted mb-3">
         <i class="bi bi-geo-alt me-1"></i><span th:text="${impianto.indirizzo}">Via Roma 10</span>
     </p>
@@ -27,56 +22,85 @@
 
                 <div class="row g-3">
 
+                    <!-- Tipo e Stato -->
                     <div class="col-12 col-sm-6">
                         <label class="form-label">Tipo intervento</label>
                         <select class="form-select" name="tipo" required>
-                            <option th:each="t : ${tipiIntervento}"
-                                    th:value="${t}"
-                                    th:text="${t.label}"
+                            <option th:each="t : ${tipiIntervento}" th:value="${t}" th:text="${t.label}"
                                     th:selected="${mode == 'edit' and intervento != null} ? ${intervento.tipo} == ${t} : false">
                             </option>
                         </select>
                     </div>
-
                     <div class="col-12 col-sm-6">
                         <label class="form-label">Stato</label>
                         <select class="form-select" name="stato" required>
-                            <option th:each="s : ${statiIntervento}"
-                                    th:value="${s}"
-                                    th:text="${s.label}"
+                            <option th:each="s : ${statiIntervento}" th:value="${s}" th:text="${s.label}"
                                     th:selected="${mode == 'edit' and intervento != null} ? ${intervento.stato} == ${s} : (${s.name() == 'DA_FARE'})">
                             </option>
                         </select>
                     </div>
 
+                    <!-- Date pianificazione (solo admin modifica) -->
+                    <div class="col-12">
+                        <div class="section-heading mt-1">Pianificazione</div>
+                    </div>
                     <div class="col-12 col-sm-6">
-                        <label class="form-label">Data programmata <span class="text-muted fw-normal">(facoltativa)</span></label>
-                        <input type="datetime-local" class="form-control" name="dataProgrammata"
-                               th:value="${dataProgrammataFormatted} ?: ''">
+                        <label class="form-label">Data programmata</label>
+                        <input type="date" class="form-control" name="dataProgrammata"
+                               th:value="${mode == 'edit' and intervento != null and intervento.dataProgrammata != null}
+                                          ? ${#temporals.format(intervento.dataProgrammata, 'yyyy-MM-dd')} : ''">
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label">Data esecuzione</label>
+                        <input type="date" class="form-control" name="dataEsecuzione"
+                               th:value="${mode == 'edit' and intervento != null and intervento.dataEsecuzione != null}
+                                          ? ${#temporals.format(intervento.dataEsecuzione, 'yyyy-MM-dd')} : ''">
                     </div>
 
-                    <div class="col-12 col-sm-6">
-                        <label class="form-label">Data esecuzione <span class="text-muted fw-normal">(facoltativa)</span></label>
-                        <input type="datetime-local" class="form-control" name="dataEsecuzione"
-                               th:value="${dataEsecuzioneFormatted} ?: ''">
+                    <!-- Orari intervento (compilati dall'operatore) -->
+                    <div class="col-12">
+                        <div class="section-heading mt-1">Orari intervento</div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label class="form-label">Inizio</label>
+                        <input type="time" class="form-control" name="inizioIntervento"
+                               th:value="${mode == 'edit' and intervento != null and intervento.inizioIntervento != null}
+                                          ? ${#temporals.format(intervento.inizioIntervento, 'HH:mm')} : ''">
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label class="form-label">Fine</label>
+                        <input type="time" class="form-control" name="fineIntervento"
+                               th:value="${mode == 'edit' and intervento != null and intervento.fineIntervento != null}
+                                          ? ${#temporals.format(intervento.fineIntervento, 'HH:mm')} : ''">
                     </div>
 
+                    <!-- Descrizione (admin) -->
+                    <div class="col-12">
+                        <div class="section-heading mt-1">Lavoro</div>
+                    </div>
                     <div class="col-12">
                         <label class="form-label">Descrizione</label>
-                        <textarea class="form-control" name="descrizione" rows="3" required
-                                  placeholder="Descrivi l'intervento da svolgere o svolto…"
+                        <textarea class="form-control" name="descrizione" rows="2" required
+                                  placeholder="Descrivere il lavoro da svolgere…"
                                   th:text="${mode == 'edit' and intervento != null} ? ${intervento.descrizione} : ''"></textarea>
                     </div>
 
+                    <!-- Rapportino (operatore) — sezione principale -->
                     <div class="col-12">
-                        <label class="form-label">Note tecnico <span class="text-muted fw-normal">(facoltative)</span></label>
-                        <textarea class="form-control" name="noteTecnico" rows="2"
-                                  placeholder="Annotazioni del tecnico a fine lavoro…"
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span>Rapportino</span>
+                            <span class="text-muted fw-normal" style="font-size:0.75rem;text-transform:none;letter-spacing:0;">
+                                Cosa ha fatto il tecnico
+                            </span>
+                        </label>
+                        <textarea class="form-control" name="noteTecnico" rows="5"
+                                  placeholder="Dettaglio dei lavori eseguiti, anomalie riscontrate, parti sostituite…"
                                   th:text="${mode == 'edit' and intervento != null} ? ${intervento.noteTecnico} : ''"></textarea>
                     </div>
 
-                    <div class="col-12 col-sm-6">
-                        <label class="form-label">Costo (€) <span class="text-muted fw-normal">(facoltativo)</span></label>
+                    <!-- Costo (solo admin) -->
+                    <div class="col-12 col-sm-5">
+                        <label class="form-label">Costo (€)</label>
                         <div class="input-group">
                             <span class="input-group-text">€</span>
                             <input type="number" step="0.01" min="0" class="form-control" name="costo"
@@ -85,15 +109,13 @@
                         </div>
                     </div>
 
-                </div>
+                </div><!-- /row -->
 
                 <div class="d-flex justify-content-between mt-4">
-                    <a th:href="@{/impianti/{id}(id=${impianto.id})}" class="btn btn-outline-secondary">
-                        Annulla
-                    </a>
+                    <a th:href="@{/impianti/{id}(id=${impianto.id})}" class="btn btn-outline-secondary">Annulla</a>
                     <button type="submit" class="btn btn-ca-primary">
                         <i class="bi bi-floppy me-1"></i>
-                        <span th:text="${mode == 'edit'} ? 'Salva modifiche' : 'Crea intervento'">Salva</span>
+                        <span th:text="${mode == 'edit'} ? 'Salva scheda' : 'Crea intervento'">Salva</span>
                     </button>
                 </div>
 
@@ -102,7 +124,6 @@
     </div>
 
 </main>
-
 <div th:replace="~{layout/base :: scripts}"></div>
 </body>
 </html>

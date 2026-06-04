@@ -4,6 +4,7 @@ public enum TipoIntervento {
     MANUTENZIONE("Manutenzione"),
     GUASTO("Guasto"),
     VERIFICA("Verifica"),
+    MONTAGGIO("Montaggio"),
     ALTRO("Altro");
 
     private final String label;

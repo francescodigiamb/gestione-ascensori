@@ -5,7 +5,7 @@ import com.francesco.gestione_ascensori.repository.InterventoRepository;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @ControllerAdvice
 public class GlobalModelAdvice {
@@ -18,7 +18,6 @@ public class GlobalModelAdvice {
 
     @ModelAttribute("navbarAlertCount")
     public long navbarAlertCount() {
-        LocalDateTime fra7Giorni = LocalDateTime.now().plusDays(7);
-        return interventoRepository.countInScadenzaEntro(StatoIntervento.DA_FARE, fra7Giorni);
+        return interventoRepository.countInScadenzaEntro(StatoIntervento.DA_FARE, LocalDate.now().plusDays(7));
     }
 }

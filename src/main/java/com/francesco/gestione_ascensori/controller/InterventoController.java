@@ -11,13 +11,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Controller
 public class InterventoController {
-
-    private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
     private final ImpiantoRepository impiantoRepository;
     private final InterventoRepository interventoRepository;
@@ -29,10 +27,9 @@ public class InterventoController {
     }
 
     @GetMapping("/impianti/{impiantoId}/interventi/nuovo")
-    public String mostraFormNuovoIntervento(@PathVariable Long impiantoId, Model model) {
+    public String mostraFormNuovo(@PathVariable Long impiantoId, Model model) {
         Impianto impianto = impiantoRepository.findById(impiantoId)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + impiantoId));
-
         model.addAttribute("impianto", impianto);
         model.addAttribute("tipiIntervento", TipoIntervento.values());
         model.addAttribute("statiIntervento", StatoIntervento.values());
@@ -42,91 +39,94 @@ public class InterventoController {
     }
 
     @PostMapping("/impianti/{impiantoId}/interventi/nuovo")
-    public String salvaNuovoIntervento(@PathVariable Long impiantoId,
+    public String salvaNuovo(@PathVariable Long impiantoId,
             @RequestParam("tipo") String tipo,
             @RequestParam("stato") String stato,
             @RequestParam("descrizione") String descrizione,
             @RequestParam(value = "dataProgrammata", required = false) String dataProgrammataStr,
-            @RequestParam(value = "dataEsecuzione", required = false) String dataEsecuzioneStr,
+            @RequestParam(value = "dataEsecuzione",  required = false) String dataEsecuzioneStr,
+            @RequestParam(value = "inizioIntervento", required = false) String inizioStr,
+            @RequestParam(value = "fineIntervento",   required = false) String fineStr,
             @RequestParam(value = "noteTecnico", required = false) String noteTecnico,
             @RequestParam(value = "costo", required = false) BigDecimal costo) {
 
         Impianto impianto = impiantoRepository.findById(impiantoId)
                 .orElseThrow(() -> new IllegalArgumentException("Impianto non trovato: " + impiantoId));
 
-        Intervento intervento = new Intervento();
-        intervento.setImpianto(impianto);
-        intervento.setTipo(TipoIntervento.valueOf(tipo));
-        intervento.setStato(StatoIntervento.valueOf(stato));
-        intervento.setDescrizione(descrizione);
-        intervento.setNoteTecnico(noteTecnico);
-        intervento.setCosto(costo);
-        intervento.setDataProgrammata(parseDateTime(dataProgrammataStr));
-        intervento.setDataEsecuzione(parseDateTime(dataEsecuzioneStr));
+        Intervento i = new Intervento();
+        i.setImpianto(impianto);
+        i.setTipo(TipoIntervento.valueOf(tipo));
+        i.setStato(StatoIntervento.valueOf(stato));
+        i.setDescrizione(descrizione);
+        i.setNoteTecnico(noteTecnico);
+        i.setCosto(costo);
+        i.setDataProgrammata(parseDate(dataProgrammataStr));
+        i.setDataEsecuzione(parseDate(dataEsecuzioneStr));
+        i.setInizioIntervento(parseTime(inizioStr));
+        i.setFineIntervento(parseTime(fineStr));
 
-        interventoRepository.save(intervento);
+        interventoRepository.save(i);
         return "redirect:/impianti/" + impiantoId;
     }
 
     @GetMapping("/interventi/{id}/modifica")
-    public String mostraFormModificaIntervento(@PathVariable Long id, Model model) {
-        Intervento intervento = interventoRepository.findById(id)
+    public String mostraFormModifica(@PathVariable Long id, Model model) {
+        Intervento i = interventoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
 
-        model.addAttribute("impianto", intervento.getImpianto());
-        model.addAttribute("intervento", intervento);
+        model.addAttribute("impianto", i.getImpianto());
+        model.addAttribute("intervento", i);
         model.addAttribute("tipiIntervento", TipoIntervento.values());
         model.addAttribute("statiIntervento", StatoIntervento.values());
         model.addAttribute("mode", "edit");
         model.addAttribute("formAction", "/interventi/" + id + "/modifica");
-
-        // Valori formattati per i campi datetime-local
-        if (intervento.getDataProgrammata() != null) {
-            model.addAttribute("dataProgrammataFormatted", intervento.getDataProgrammata().format(DT_FMT));
-        }
-        if (intervento.getDataEsecuzione() != null) {
-            model.addAttribute("dataEsecuzioneFormatted", intervento.getDataEsecuzione().format(DT_FMT));
-        }
-
         return "intervento-form";
     }
 
     @PostMapping("/interventi/{id}/modifica")
-    public String salvaModificaIntervento(@PathVariable Long id,
+    public String salvaModifica(@PathVariable Long id,
             @RequestParam("tipo") String tipo,
             @RequestParam("stato") String stato,
             @RequestParam("descrizione") String descrizione,
             @RequestParam(value = "dataProgrammata", required = false) String dataProgrammataStr,
-            @RequestParam(value = "dataEsecuzione", required = false) String dataEsecuzioneStr,
+            @RequestParam(value = "dataEsecuzione",  required = false) String dataEsecuzioneStr,
+            @RequestParam(value = "inizioIntervento", required = false) String inizioStr,
+            @RequestParam(value = "fineIntervento",   required = false) String fineStr,
             @RequestParam(value = "noteTecnico", required = false) String noteTecnico,
             @RequestParam(value = "costo", required = false) BigDecimal costo) {
 
-        Intervento intervento = interventoRepository.findById(id)
+        Intervento i = interventoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
 
-        intervento.setTipo(TipoIntervento.valueOf(tipo));
-        intervento.setStato(StatoIntervento.valueOf(stato));
-        intervento.setDescrizione(descrizione);
-        intervento.setNoteTecnico(noteTecnico);
-        intervento.setCosto(costo);
-        intervento.setDataProgrammata(parseDateTime(dataProgrammataStr));
-        intervento.setDataEsecuzione(parseDateTime(dataEsecuzioneStr));
+        i.setTipo(TipoIntervento.valueOf(tipo));
+        i.setStato(StatoIntervento.valueOf(stato));
+        i.setDescrizione(descrizione);
+        i.setNoteTecnico(noteTecnico);
+        i.setCosto(costo);
+        i.setDataProgrammata(parseDate(dataProgrammataStr));
+        i.setDataEsecuzione(parseDate(dataEsecuzioneStr));
+        i.setInizioIntervento(parseTime(inizioStr));
+        i.setFineIntervento(parseTime(fineStr));
 
-        interventoRepository.save(intervento);
-        return "redirect:/impianti/" + intervento.getImpianto().getId();
+        interventoRepository.save(i);
+        return "redirect:/impianti/" + i.getImpianto().getId();
     }
 
     @PostMapping("/interventi/{id}/elimina")
-    public String eliminaIntervento(@PathVariable Long id) {
-        Intervento intervento = interventoRepository.findById(id)
+    public String elimina(@PathVariable Long id) {
+        Intervento i = interventoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
-        Long impiantoId = intervento.getImpianto().getId();
-        interventoRepository.delete(intervento);
+        Long impiantoId = i.getImpianto().getId();
+        interventoRepository.delete(i);
         return "redirect:/impianti/" + impiantoId;
     }
 
-    private LocalDateTime parseDateTime(String value) {
-        if (value == null || value.isBlank()) return null;
-        return LocalDateTime.parse(value, DT_FMT);
+    // ── helper ──────────────────────────────────────────────
+    private LocalDate parseDate(String v) {
+        return (v == null || v.isBlank()) ? null : LocalDate.parse(v);
+    }
+
+    private LocalTime parseTime(String v) {
+        return (v == null || v.isBlank()) ? null : LocalTime.parse(v);
     }
 }
