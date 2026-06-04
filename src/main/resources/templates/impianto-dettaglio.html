@@ -181,21 +181,48 @@
                 </div>
 
                 <!-- Azioni -->
-                <div class="d-flex justify-content-end gap-2 mt-2 pt-2 border-top">
-                    <!-- Operatore: può aprire scheda solo se assegnato -->
-                    <a th:if="${isAdmin or (intervento.assegnatario != null and intervento.assegnatario.username == #authentication.name)}"
-                       th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
-                       class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-file-text me-1"></i>Apri scheda
-                    </a>
-                    <!-- Delete — solo admin -->
-                    <form th:if="${isAdmin}"
-                          th:action="@{/interventi/{id}/elimina(id=${intervento.id})}" method="post"
-                          onsubmit="return confirm('Eliminare questo intervento?')">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top"
+                     th:with="isAssegnato=${intervento.assegnatario != null and intervento.assegnatario.username == #authentication.name}">
+
+                    <!-- Cambio stato rapido — admin o operatore assegnato -->
+                    <div class="d-flex gap-1 align-items-center" th:if="${isAdmin or isAssegnato}">
+                        <!-- DA_FARE: solo "In corso" -->
+                        <form th:if="${intervento.stato.name() == 'DA_FARE'}"
+                              th:action="@{/interventi/{id}/stato(id=${intervento.id})}" method="post">
+                            <input type="hidden" name="stato" value="IN_CORSO">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-right-circle me-1"></i>In corso
+                            </button>
+                        </form>
+                        <!-- IN_CORSO: badge -->
+                        <span th:if="${intervento.stato.name() == 'IN_CORSO'}"
+                              class="badge rounded-pill badge-in-corso">
+                            <i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i>In corso
+                        </span>
+                        <!-- COMPLETATO: badge -->
+                        <span th:if="${intervento.stato.name() == 'COMPLETATO'}"
+                              class="badge rounded-pill badge-completato">
+                            <i class="bi bi-check-circle me-1"></i>Completato
+                        </span>
+                    </div>
+                    <div th:if="${not isAdmin and not isAssegnato}"></div>
+
+                    <!-- Apri scheda + elimina -->
+                    <div class="d-flex gap-2">
+                        <a th:if="${isAdmin or isAssegnato}"
+                           th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-file-text me-1"></i>Scheda
+                        </a>
+                        <form th:if="${isAdmin}"
+                              th:action="@{/interventi/{id}/elimina(id=${intervento.id})}" method="post"
+                              onsubmit="return confirm('Eliminare questo intervento?')">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
 
             </div>

@@ -77,7 +77,9 @@ public class InterventoController {
     }
 
     @GetMapping("/interventi/{id}/modifica")
-    public String mostraFormModifica(@PathVariable Long id, Model model, Authentication auth) {
+    public String mostraFormModifica(@PathVariable Long id,
+            @RequestParam(value = "errore", required = false) String errore,
+            Model model, Authentication auth) {
         Intervento i = interventoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
 
@@ -96,6 +98,9 @@ public class InterventoController {
         model.addAttribute("operatori", utenteRepository.findByRuolo(RuoloUtente.OPERATORE));
         model.addAttribute("mode", "edit");
         model.addAttribute("formAction", "/interventi/" + id + "/modifica");
+        if ("rapportino".equals(errore)) {
+            model.addAttribute("errore", "Per segnare l'intervento come Completato è necessario compilare il Rapportino.");
+        }
         return "intervento-form";
     }
 
@@ -114,6 +119,15 @@ public class InterventoController {
 
         Intervento i = interventoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
+
+        // Validazione: operatore non può completare senza rapportino
+        if (!isAdmin(auth)) {
+            boolean vuoleCompletare = StatoIntervento.COMPLETATO.name().equals(stato);
+            boolean rapportinoVuoto = noteTecnico == null || noteTecnico.isBlank();
+            if (vuoleCompletare && rapportinoVuoto) {
+                return "redirect:/interventi/" + id + "/modifica?errore=rapportino";
+            }
+        }
 
         if (isAdmin(auth)) {
             // Admin: aggiorna tutto
@@ -145,6 +159,30 @@ public class InterventoController {
 
         interventoRepository.save(i);
         return "redirect:/impianti/" + i.getImpianto().getId();
+    }
+
+    // Cambio stato rapido dalla card — operatore assegnato o admin
+    @PostMapping("/interventi/{id}/stato")
+    public String cambiaStato(@PathVariable Long id,
+            @RequestParam("stato") String stato,
+            Authentication auth) {
+        Intervento i = interventoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
+
+        // Controllo: operatore può cambiare stato solo se è l'assegnatario
+        if (!isAdmin(auth)) {
+            Utente corrente = utenteRepository.findByUsername(auth.getName()).orElseThrow();
+            if (i.getAssegnatario() == null || !i.getAssegnatario().getId().equals(corrente.getId())) {
+                return "redirect:/";
+            }
+        }
+
+        i.setStato(StatoIntervento.valueOf(stato));
+        interventoRepository.save(i);
+
+        // Torna alla pagina da cui è arrivato
+        String referer = "/impianti/" + i.getImpianto().getId();
+        return "redirect:" + referer;
     }
 
     // Assegnazione rapida dalla card — solo admin
