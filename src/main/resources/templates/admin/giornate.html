@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head th:replace="~{layout/base :: head('Giornate lavorative')}"></head>
+<body>
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<main class="container my-3">
+
+    <a th:href="@{/admin}" class="btn btn-link btn-back ps-0 mb-2">
+        <i class="bi bi-arrow-left me-1"></i>Admin
+    </a>
+
+    <h1 class="page-title mb-3">
+        <i class="bi bi-calendar2-week me-1"></i>Giornate lavorative
+    </h1>
+
+    <!-- Flash message -->
+    <div th:if="${msg}" class="alert alert-success rounded-3 py-2 small mb-3">
+        <i class="bi bi-check-circle me-1"></i><span th:text="${msg}"></span>
+    </div>
+
+    <!-- Navigazione mese -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a th:href="@{/admin/giornate(mese=${mesePrecedente.monthValue},anno=${mesePrecedente.year})}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="fw-bold" style="text-transform:capitalize;"
+              th:text="${#temporals.format(meseSelezionato.atDay(1), 'MMMM yyyy')}">Giugno 2026</span>
+        <a th:href="@{/admin/giornate(mese=${meseSuccessivo.monthValue},anno=${meseSuccessivo.year})}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+
+    <!-- Accordion: un blocco per operatore -->
+    <div class="accordion" id="accordionGiornate">
+
+        <div th:each="entry, iterStat : ${perOperatore}"
+             th:with="op=${entry.key}, giornate=${entry.value}, totMin=${totaleMinutiPerOperatore[entry.key]}"
+             class="accordion-item border rounded-3 mb-2 overflow-hidden">
+
+            <!-- Header accordion: nome + totale ore — sempre visibile -->
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed py-3" type="button"
+                        data-bs-toggle="collapse"
+                        th:data-bs-target="'#op-' + ${op.id}"
+                        style="background:#fff;">
+                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                        <span class="fw-bold" th:text="${op.nomeCompleto}">Operatore</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Totale ore mese -->
+                            <span th:if="${totMin > 0}"
+                                  class="badge rounded-pill badge-in-corso"
+                                  th:text="${totMin / 60} + 'h ' + ${totMin % 60} + 'm'">0h</span>
+                            <span th:if="${totMin == 0}"
+                                  class="badge rounded-pill badge-dismesso">Nessuna ora</span>
+                            <!-- Numero giornate -->
+                            <span class="text-muted" style="font-size:0.75rem;"
+                                  th:text="${#lists.size(giornate)} + ' gg'">0 gg</span>
+                        </div>
+                    </div>
+                </button>
+            </h2>
+
+            <!-- Body accordion: lista compatta dei giorni -->
+            <div th:id="'op-' + ${op.id}" class="accordion-collapse collapse">
+                <div class="accordion-body p-0">
+
+                    <div th:if="${#lists.isEmpty(giornate)}"
+                         class="text-muted small text-center py-3">
+                        Nessuna giornata registrata per questo mese.
+                    </div>
+
+                    <div th:each="g, gStat : ${giornate}"
+                         th:classappend="${!gStat.last} ? 'border-bottom' : ''"
+                         class="px-3 py-2">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Giorno + orari + durata su una riga -->
+                            <div>
+                                <span class="small fw-bold" style="text-transform:capitalize;color:#214F8D;"
+                                      th:text="${#temporals.format(g.data, 'EEE dd/MM')}">Lun 02/06</span>
+                                <span class="small text-muted ms-2">
+                                    <span th:text="${g.oraInizio != null} ? ${#temporals.format(g.oraInizio, 'HH:mm')} : '—'"></span>
+                                    <span class="mx-1">→</span>
+                                    <span th:text="${g.oraFine != null} ? ${#temporals.format(g.oraFine, 'HH:mm')} : '—'"></span>
+                                </span>
+                                <span class="small fw-bold ms-2" style="color:#214F8D;"
+                                      th:if="${g.oraFine != null}"
+                                      th:text="${g.durataFormattata}">8h 00m</span>
+                                <!-- Badge "In corso" se non terminata -->
+                                <span th:if="${g.oraInizio != null and g.oraFine == null}"
+                                      class="badge rounded-pill badge-in-corso ms-1"
+                                      style="font-size:0.65rem;">in corso</span>
+                            </div>
+
+                            <!-- Bottone modifica collassabile -->
+                            <button type="button"
+                                    class="btn btn-link p-0 text-muted flex-shrink-0"
+                                    style="font-size:0.72rem;"
+                                    data-bs-toggle="collapse"
+                                    th:data-bs-target="'#edit-' + ${g.id}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+
+                        <!-- Form modifica inline — collassato -->
+                        <div class="collapse mt-2" th:id="'edit-' + ${g.id}">
+                            <form th:action="@{/admin/giornate/{id}/modifica(id=${g.id})}" method="post">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-5">
+                                        <label class="form-label">Inizio</label>
+                                        <input type="time" class="form-control form-control-sm" name="oraInizio"
+                                               th:value="${g.oraInizio != null} ? ${#temporals.format(g.oraInizio, 'HH:mm')} : ''">
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label">Fine</label>
+                                        <input type="time" class="form-control form-control-sm" name="oraFine"
+                                               th:value="${g.oraFine != null} ? ${#temporals.format(g.oraFine, 'HH:mm')} : ''">
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="submit" class="btn btn-ca-primary btn-sm w-100">
+                                            <i class="bi bi-floppy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div><!-- /each giornata -->
+
+                </div>
+            </div>
+
+        </div><!-- /each operatore -->
+
+    </div><!-- /accordion -->
+
+</main>
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>
