@@ -17,6 +17,11 @@ public class Intervento {
     @JoinColumn(name = "impianto_id")
     private Impianto impianto;
 
+    // Operatore assegnato a questo intervento (nullable = non ancora assegnato)
+    @ManyToOne
+    @JoinColumn(name = "assegnatario_id")
+    private Utente assegnatario;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoIntervento tipo;
@@ -25,31 +30,24 @@ public class Intervento {
     @Column(nullable = false, length = 20)
     private StatoIntervento stato;
 
-    // Data pianificata (solo giorno, senza orario)
     private LocalDate dataProgrammata;
-
-    // Data effettiva di esecuzione (solo giorno, senza orario)
     private LocalDate dataEsecuzione;
 
-    // Orario di inizio intervento (compilato dall'operatore)
+    // Orari compilati dall'operatore
     private LocalTime inizioIntervento;
-
-    // Orario di fine intervento (compilato dall'operatore)
     private LocalTime fineIntervento;
 
-    // Descrizione del lavoro da svolgere (gestita dall'admin)
     @Column(nullable = false, length = 500)
     private String descrizione;
 
-    // Rapportino: cosa ha fatto il tecnico a fine lavoro (compilato dall'operatore)
+    // Rapportino: cosa ha fatto il tecnico
     @Column(length = 2000)
     private String noteTecnico;
 
     @Column(precision = 10, scale = 2)
     private BigDecimal costo;
 
-    public Intervento() {
-    }
+    public Intervento() {}
 
     public Intervento(Impianto impianto, TipoIntervento tipo, StatoIntervento stato,
                       LocalDate dataProgrammata, String descrizione) {
@@ -65,6 +63,9 @@ public class Intervento {
 
     public Impianto getImpianto() { return impianto; }
     public void setImpianto(Impianto impianto) { this.impianto = impianto; }
+
+    public Utente getAssegnatario() { return assegnatario; }
+    public void setAssegnatario(Utente assegnatario) { this.assegnatario = assegnatario; }
 
     public TipoIntervento getTipo() { return tipo; }
     public void setTipo(TipoIntervento tipo) { this.tipo = tipo; }

@@ -6,104 +6,170 @@
 
 <main class="container my-3">
 
-    <!-- Stat cards cliccabili -->
-    <div class="row g-2 mb-3">
-        <div class="col-4">
-            <a th:href="@{/impianti(stato='ATTIVO')}" class="text-decoration-none">
-                <div class="card text-center p-2 card-clickable">
-                    <div class="fw-bold" style="font-size:1.6rem;color:#214F8D;" th:text="${impiantiAttivi}">0</div>
-                    <div class="text-muted" style="font-size:0.72rem;">Impianti attivi</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-4">
-            <a th:href="@{/interventi(stato='DA_FARE')}" class="text-decoration-none">
-                <div class="card text-center p-2 card-clickable">
-                    <div class="fw-bold" style="font-size:1.6rem;color:#92400e;" th:text="${interventiDaFare}">0</div>
-                    <div class="text-muted" style="font-size:0.72rem;">Da fare</div>
-                </div>
-            </a>
-        </div>
-        <div class="col-4">
-            <a th:href="@{/interventi(stato='IN_CORSO')}" class="text-decoration-none">
-                <div class="card text-center p-2 card-clickable">
-                    <div class="fw-bold" style="font-size:1.6rem;color:#1e40af;" th:text="${interventiInCorso}">0</div>
-                    <div class="text-muted" style="font-size:0.72rem;">In corso</div>
-                </div>
-            </a>
-        </div>
-    </div>
+    <!-- ═══════════════════════════════════════
+         VISTA ADMIN
+    ════════════════════════════════════════ -->
+    <th:block th:if="${isAdmin}">
 
-    <!-- In scadenza / scaduti -->
-    <div th:if="${not #lists.isEmpty(inScadenza)}">
-        <div class="section-heading d-flex align-items-center gap-2">
-            <i class="bi bi-bell-fill text-danger"></i>In scadenza / Scaduti
+        <!-- Stat cards cliccabili -->
+        <div class="row g-2 mb-3">
+            <div class="col-4">
+                <a th:href="@{/impianti}" class="text-decoration-none">
+                    <div class="card text-center p-2 card-clickable">
+                        <div class="fw-bold" style="font-size:1.6rem;color:#214F8D;" th:text="${impiantiAttivi}">0</div>
+                        <div class="text-muted" style="font-size:0.72rem;">Impianti</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-4">
+                <a th:href="@{/interventi(stato='DA_FARE')}" class="text-decoration-none">
+                    <div class="card text-center p-2 card-clickable">
+                        <div class="fw-bold" style="font-size:1.6rem;color:#92400e;" th:text="${interventiDaFare}">0</div>
+                        <div class="text-muted" style="font-size:0.72rem;">Interv. da fare</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-4">
+                <a th:href="@{/interventi(stato='IN_CORSO')}" class="text-decoration-none">
+                    <div class="card text-center p-2 card-clickable">
+                        <div class="fw-bold" style="font-size:1.6rem;color:#1e40af;" th:text="${interventiInCorso}">0</div>
+                        <div class="text-muted" style="font-size:0.72rem;">Interv. in corso</div>
+                    </div>
+                </a>
+            </div>
         </div>
-        <div class="d-flex flex-column gap-2 mb-3">
-            <div th:each="intervento : ${inScadenza}" class="card" style="border-left:4px solid #C73834;">
+
+        <!-- In scadenza / scaduti -->
+        <div th:if="${not #lists.isEmpty(inScadenza)}">
+            <div class="section-heading d-flex align-items-center gap-2">
+                <i class="bi bi-bell-fill text-danger"></i>In scadenza / Scaduti
+            </div>
+            <div class="d-flex flex-column gap-2 mb-3">
+                <div th:each="intervento : ${inScadenza}" class="card" style="border-left:4px solid #C73834;">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="overflow-hidden me-2">
+                                <a th:href="@{/impianti/{id}(id=${intervento.impianto.id})}"
+                                   class="text-decoration-none fw-bold text-truncate d-block"
+                                   style="color:#111;" th:text="${intervento.impianto.nome}">ASC-PE-001</a>
+                                <div class="small text-muted text-truncate">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <span th:text="${intervento.impianto.indirizzo}">Via Roma 10</span>
+                                </div>
+                                <div class="small text-muted" th:if="${intervento.assegnatario != null}">
+                                    <i class="bi bi-person me-1"></i>
+                                    <span th:text="${intervento.assegnatario.nomeCompleto}"></span>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill flex-shrink-0"
+                                  th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE' or intervento.tipo.name() == 'MONTAGGIO'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : 'badge-altro'))"
+                                  th:text="${intervento.tipo.label}">Tipo</span>
+                        </div>
+                        <p class="small mb-1 mt-1 text-truncate" th:text="${intervento.descrizione}"></p>
+                        <div class="small"
+                             th:classappend="${intervento.dataProgrammata.isBefore(oggi)} ? 'text-danger fw-bold' : 'text-muted'">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            <span th:text="${intervento.dataProgrammata.isBefore(oggi)} ? 'Scaduto il ' : 'Previsto il '"></span>
+                            <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy')}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Luoghi -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="section-heading mb-0">Luoghi</div>
+            <a th:href="@{/luoghi/nuovo}" class="btn btn-ca-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Nuovo
+            </a>
+        </div>
+        <div class="row g-2" th:if="${not #lists.isEmpty(luoghi)}">
+            <div class="col-12 col-sm-6 col-lg-4" th:each="luogo : ${luoghi}">
+                <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="text-decoration-none">
+                    <div class="card card-clickable h-100">
+                        <div class="card-body d-flex align-items-center gap-3 py-2">
+                            <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:40px;height:40px;background:#e8eef7;">
+                                <i class="bi bi-building" style="font-size:1.2rem;color:#214F8D;"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="fw-bold text-truncate" style="color:#214F8D;" th:text="${luogo.nome}">Pescara</div>
+                                <div class="small text-muted text-truncate"
+                                     th:text="${luogo.descrizione != null and !#strings.isEmpty(luogo.descrizione)} ? ${luogo.descrizione} : 'Nessuna descrizione'"></div>
+                            </div>
+                            <i class="bi bi-chevron-right ms-auto text-muted flex-shrink-0"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </th:block>
+
+    <!-- ═══════════════════════════════════════
+         VISTA OPERATORE
+    ════════════════════════════════════════ -->
+    <th:block th:if="${not isAdmin}">
+
+        <h1 class="page-title mb-3">
+            <i class="bi bi-person-check me-1"></i>
+            I miei interventi
+        </h1>
+
+        <div th:if="${not #lists.isEmpty(mieiInterventi)}" class="d-flex flex-column gap-2">
+            <div th:each="intervento : ${mieiInterventi}" class="card card-accent-blue">
                 <div class="card-body py-2 px-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="overflow-hidden me-2">
-                            <a th:href="@{/impianti/{id}(id=${intervento.impianto.id})}"
-                               class="text-decoration-none fw-bold text-truncate d-block"
-                               style="color:#111;" th:text="${intervento.impianto.nome}">ASC-PE-001</a>
+                            <div class="fw-bold text-truncate" style="color:#111;"
+                                 th:text="${intervento.impianto.nome}">ASC-PE-001</div>
                             <div class="small text-muted text-truncate">
                                 <i class="bi bi-geo-alt me-1"></i>
                                 <span th:text="${intervento.impianto.indirizzo}">Via Roma 10</span>
                             </div>
                         </div>
                         <span class="badge rounded-pill flex-shrink-0"
-                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : (${intervento.tipo.name() == 'MONTAGGIO'} ? 'badge-manutenzione' : 'badge-altro')))"
-                              th:text="${intervento.tipo.label}">Tipo</span>
+                              th:classappend="${intervento.stato.name() == 'COMPLETATO'} ? 'badge-completato' : (${intervento.stato.name() == 'DA_FARE'} ? 'badge-da-fare' : (${intervento.stato.name() == 'IN_CORSO'} ? 'badge-in-corso' : 'badge-annullato'))"
+                              th:text="${intervento.stato.label}">Stato</span>
                     </div>
                     <p class="small mb-1 mt-1 text-truncate" th:text="${intervento.descrizione}"></p>
-                    <div class="small"
-                         th:classappend="${intervento.dataProgrammata.isBefore(oggi)} ? 'text-danger fw-bold' : 'text-muted'">
+                    <div class="small text-muted" th:if="${intervento.dataProgrammata != null}">
                         <i class="bi bi-calendar-event me-1"></i>
-                        <span th:text="${intervento.dataProgrammata.isBefore(oggi)} ? 'Scaduto il ' : 'Previsto il '"></span>
                         <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy')}"></span>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <a th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
+                           class="btn btn-ca-primary btn-sm">
+                            <i class="bi bi-file-text me-1"></i>Apri scheda
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Luoghi -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="section-heading mb-0">Luoghi</div>
-        <a th:href="@{/luoghi/nuovo}" class="btn btn-ca-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Nuovo
-        </a>
-    </div>
-
-    <div class="row g-2" th:if="${not #lists.isEmpty(luoghi)}">
-        <div class="col-12 col-sm-6 col-lg-4" th:each="luogo : ${luoghi}">
-            <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="text-decoration-none">
-                <div class="card card-clickable h-100">
-                    <div class="card-body d-flex align-items-center gap-3 py-2">
-                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                             style="width:40px;height:40px;background:#e8eef7;">
-                            <i class="bi bi-building" style="font-size:1.2rem;color:#214F8D;"></i>
-                        </div>
-                        <div class="overflow-hidden">
-                            <div class="fw-bold text-truncate" style="color:#214F8D;" th:text="${luogo.nome}">Pescara</div>
-                            <div class="small text-muted text-truncate"
-                                 th:text="${luogo.descrizione != null and !#strings.isEmpty(luogo.descrizione)} ? ${luogo.descrizione} : 'Nessuna descrizione'"></div>
-                        </div>
-                        <i class="bi bi-chevron-right ms-auto text-muted flex-shrink-0"></i>
-                    </div>
-                </div>
-            </a>
+        <div th:if="${#lists.isEmpty(mieiInterventi)}" class="text-center py-5">
+            <i class="bi bi-check-circle" style="font-size:2.5rem;color:#d1d5db;"></i>
+            <p class="text-muted mt-2">Nessun intervento assegnato.</p>
         </div>
-    </div>
 
-    <div th:if="${#lists.isEmpty(luoghi)}" class="text-center py-5">
-        <i class="bi bi-geo-alt" style="font-size:2.5rem;color:#d1d5db;"></i>
-        <p class="text-muted mt-2 mb-3">Nessun luogo configurato.</p>
-        <a th:href="@{/luoghi/nuovo}" class="btn btn-ca-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Aggiungi il primo luogo
-        </a>
-    </div>
+        <!-- Luoghi (navigazione) -->
+        <div class="section-heading mt-4">Luoghi</div>
+        <div class="row g-2" th:if="${not #lists.isEmpty(luoghi)}">
+            <div class="col-12 col-sm-6" th:each="luogo : ${luoghi}">
+                <a th:href="@{/luoghi/{id}(id=${luogo.id})}" class="text-decoration-none">
+                    <div class="card card-clickable">
+                        <div class="card-body d-flex align-items-center gap-2 py-2">
+                            <i class="bi bi-building text-muted"></i>
+                            <span class="fw-bold text-truncate" style="color:#214F8D;" th:text="${luogo.nome}">Pescara</span>
+                            <i class="bi bi-chevron-right ms-auto text-muted flex-shrink-0"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </th:block>
 
 </main>
 <div th:replace="~{layout/base :: scripts}"></div>

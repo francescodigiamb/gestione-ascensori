@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="it">
 <head th:replace="~{layout/base :: head(${mode == 'edit'} ? 'Scheda intervento' : 'Nuovo intervento')}"></head>
 <body>
 <nav th:replace="~{layout/base :: navbar}"></nav>
@@ -19,45 +21,70 @@
     <div class="card">
         <div class="card-body">
             <form th:action="${formAction}" method="post">
-
                 <div class="row g-3">
 
-                    <!-- Tipo e Stato -->
-                    <div class="col-12 col-sm-6">
-                        <label class="form-label">Tipo intervento</label>
-                        <select class="form-select" name="tipo" required>
-                            <option th:each="t : ${tipiIntervento}" th:value="${t}" th:text="${t.label}"
-                                    th:selected="${mode == 'edit' and intervento != null} ? ${intervento.tipo} == ${t} : false">
+                    <!-- Assegna operatore — solo admin, in cima -->
+                    <div class="col-12" th:if="${isAdmin}">
+                        <label class="form-label">Assegna a</label>
+                        <select class="form-select" name="assegnatarioId">
+                            <option value="">— Nessuno —</option>
+                            <option th:each="op : ${operatori}"
+                                    th:value="${op.id}"
+                                    th:text="${op.nomeCompleto}"
+                                    th:selected="${mode == 'edit' and intervento != null and intervento.assegnatario != null}
+                                               ? ${intervento.assegnatario.id == op.id} : false">
                             </option>
                         </select>
                     </div>
+                    <!-- Separatore visivo -->
+                    <div class="col-12" th:if="${isAdmin}"><hr class="my-0"></div>
+
+                    <!-- Tipo — readonly per operatore -->
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label">Tipo intervento</label>
+                        <th:block th:if="${isAdmin}">
+                            <select class="form-select" name="tipo" required>
+                                <option th:each="t : ${tipiIntervento}" th:value="${t}" th:text="${t.label}"
+                                        th:selected="${mode == 'edit' and intervento != null} ? ${intervento.tipo} == ${t} : false"></option>
+                            </select>
+                        </th:block>
+                        <th:block th:if="${not isAdmin}">
+                            <input type="text" class="form-control" readonly
+                                   th:value="${mode == 'edit' and intervento != null} ? ${intervento.tipo.label} : ''">
+                            <input type="hidden" name="tipo"
+                                   th:value="${mode == 'edit' and intervento != null} ? ${intervento.tipo} : ''">
+                        </th:block>
+                    </div>
+
+                    <!-- Stato — modificabile da tutti -->
                     <div class="col-12 col-sm-6">
                         <label class="form-label">Stato</label>
                         <select class="form-select" name="stato" required>
                             <option th:each="s : ${statiIntervento}" th:value="${s}" th:text="${s.label}"
-                                    th:selected="${mode == 'edit' and intervento != null} ? ${intervento.stato} == ${s} : (${s.name() == 'DA_FARE'})">
-                            </option>
+                                    th:selected="${mode == 'edit' and intervento != null} ? ${intervento.stato} == ${s} : (${s.name() == 'DA_FARE'})"></option>
                         </select>
                     </div>
 
-                    <!-- Date pianificazione (solo admin modifica) -->
+                    <!-- Date pianificazione — readonly per operatore -->
                     <div class="col-12">
                         <div class="section-heading mt-1">Pianificazione</div>
                     </div>
                     <div class="col-12 col-sm-6">
                         <label class="form-label">Data programmata</label>
                         <input type="date" class="form-control" name="dataProgrammata"
+                               th:readonly="${not isAdmin}"
                                th:value="${mode == 'edit' and intervento != null and intervento.dataProgrammata != null}
                                           ? ${#temporals.format(intervento.dataProgrammata, 'yyyy-MM-dd')} : ''">
                     </div>
                     <div class="col-12 col-sm-6">
                         <label class="form-label">Data esecuzione</label>
                         <input type="date" class="form-control" name="dataEsecuzione"
+                               th:readonly="${not isAdmin}"
                                th:value="${mode == 'edit' and intervento != null and intervento.dataEsecuzione != null}
                                           ? ${#temporals.format(intervento.dataEsecuzione, 'yyyy-MM-dd')} : ''">
                     </div>
 
-                    <!-- Orari intervento (compilati dall'operatore) -->
+                    <!-- Orari intervento — modificabili da tutti -->
                     <div class="col-12">
                         <div class="section-heading mt-1">Orari intervento</div>
                     </div>
@@ -74,18 +101,19 @@
                                           ? ${#temporals.format(intervento.fineIntervento, 'HH:mm')} : ''">
                     </div>
 
-                    <!-- Descrizione (admin) -->
+                    <!-- Descrizione — readonly per operatore -->
                     <div class="col-12">
                         <div class="section-heading mt-1">Lavoro</div>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Descrizione</label>
                         <textarea class="form-control" name="descrizione" rows="2" required
+                                  th:readonly="${not isAdmin}"
                                   placeholder="Descrivere il lavoro da svolgere…"
                                   th:text="${mode == 'edit' and intervento != null} ? ${intervento.descrizione} : ''"></textarea>
                     </div>
 
-                    <!-- Rapportino (operatore) — sezione principale -->
+                    <!-- Rapportino — modificabile da tutti -->
                     <div class="col-12">
                         <label class="form-label d-flex justify-content-between align-items-center">
                             <span>Rapportino</span>
@@ -98,8 +126,8 @@
                                   th:text="${mode == 'edit' and intervento != null} ? ${intervento.noteTecnico} : ''"></textarea>
                     </div>
 
-                    <!-- Costo (solo admin) -->
-                    <div class="col-12 col-sm-5">
+                    <!-- Costo — solo admin -->
+                    <div class="col-12 col-sm-5" th:if="${isAdmin}">
                         <label class="form-label">Costo (€)</label>
                         <div class="input-group">
                             <span class="input-group-text">€</span>

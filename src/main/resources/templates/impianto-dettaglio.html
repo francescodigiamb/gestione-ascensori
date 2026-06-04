@@ -16,9 +16,9 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <h1 class="page-title mb-0" th:text="${impianto.nome}">ASC-PE-001</h1>
-                    <div class="small text-muted" th:if="${impianto.matricola != null and !#strings.isEmpty(impianto.matricola)}">
-                        <i class="bi bi-upc me-1"></i>Matricola:
-                        <span th:text="${impianto.matricola}"></span>
+                    <div class="small text-muted"
+                         th:if="${impianto.matricola != null and !#strings.isEmpty(impianto.matricola)}">
+                        <i class="bi bi-upc me-1"></i>Matricola: <span th:text="${impianto.matricola}"></span>
                     </div>
                     <div class="small text-muted mt-1">
                         <i class="bi bi-geo-alt me-1"></i><span th:text="${impianto.indirizzo}">Via Roma 10</span>
@@ -34,7 +34,8 @@
                 <i class="bi bi-sticky me-1"></i><span th:text="${impianto.note}"></span>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <!-- Totale costi + azioni — solo admin -->
+            <div th:if="${isAdmin}" class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                 <div class="small">
                     <i class="bi bi-currency-euro me-1 text-muted"></i>Totale completati:
                     <strong th:text="${#numbers.formatDecimal(totaleCosti, 1, 'COMMA', 2, 'POINT')} + ' €'">0,00 €</strong>
@@ -57,7 +58,8 @@
     <!-- Lista interventi -->
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="section-heading mb-0">Interventi</div>
-        <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
+        <a th:if="${isAdmin}"
+           th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
             <i class="bi bi-plus-lg me-1"></i>Aggiungi
         </a>
     </div>
@@ -66,31 +68,96 @@
         <div th:each="intervento : ${interventi}" class="card card-accent-blue">
             <div class="card-body pb-2">
 
-                <!-- Tipo + Stato + Costo -->
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <span class="badge rounded-pill me-1"
-                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : (${intervento.tipo.name() == 'MONTAGGIO'} ? 'badge-manutenzione' : 'badge-altro')))"
+                              th:classappend="${intervento.tipo.name() == 'GUASTO'} ? 'badge-guasto' : (${intervento.tipo.name() == 'MANUTENZIONE' or intervento.tipo.name() == 'MONTAGGIO'} ? 'badge-manutenzione' : (${intervento.tipo.name() == 'VERIFICA'} ? 'badge-verifica' : 'badge-altro'))"
                               th:text="${intervento.tipo.label}">Tipo</span>
                         <span class="badge rounded-pill"
                               th:classappend="${intervento.stato.name() == 'COMPLETATO'} ? 'badge-completato' : (${intervento.stato.name() == 'DA_FARE'} ? 'badge-da-fare' : (${intervento.stato.name() == 'IN_CORSO'} ? 'badge-in-corso' : 'badge-annullato'))"
                               th:text="${intervento.stato.label}">Stato</span>
                     </div>
-                    <span class="small fw-bold text-muted" th:if="${intervento.costo != null}"
+                    <span class="small fw-bold text-muted" th:if="${isAdmin and intervento.costo != null}"
                           th:text="${#numbers.formatDecimal(intervento.costo, 1, 'COMMA', 2, 'POINT')} + ' €'"></span>
                 </div>
 
-                <!-- Descrizione -->
+                <!-- Assegnatario — testo per operatore, quick-assign per admin -->
+                <div th:if="${not isAdmin and intervento.assegnatario != null}" class="small text-muted mt-1">
+                    <i class="bi bi-person me-1"></i>
+                    <span th:text="${intervento.assegnatario.nomeCompleto}"></span>
+                </div>
+
+                <!-- Quick-assign — solo admin -->
+                <div th:if="${isAdmin}" class="mt-2">
+
+                    <!-- GIÀ ASSEGNATO: mostra nome + link "Cambia" collassabile -->
+                    <div th:if="${intervento.assegnatario != null}">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="small">
+                                <i class="bi bi-person-check text-success me-1"></i>
+                                <strong th:text="${intervento.assegnatario.nomeCompleto}"></strong>
+                            </span>
+                            <button type="button"
+                                    class="btn btn-link p-0 border-0 text-muted"
+                                    style="font-size:0.75rem;"
+                                    data-bs-toggle="collapse"
+                                    th:data-bs-target="'#assign-' + ${intervento.id}">
+                                Cambia
+                            </button>
+                        </div>
+                        <div class="collapse mt-1" th:id="'assign-' + ${intervento.id}">
+                            <form th:action="@{/interventi/{id}/assegna(id=${intervento.id})}" method="post">
+                                <div class="input-group input-group-sm">
+                                    <select class="form-select form-select-sm" name="assegnatarioId" style="font-size:0.8rem;">
+                                        <option value="">— Nessuno —</option>
+                                        <option th:each="op : ${operatori}"
+                                                th:value="${op.id}"
+                                                th:text="${op.nomeCompleto}"
+                                                th:selected="${intervento.assegnatario.id == op.id}">
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- NON ASSEGNATO: dropdown sempre visibile -->
+                    <div th:if="${intervento.assegnatario == null}">
+                        <form th:action="@{/interventi/{id}/assegna(id=${intervento.id})}" method="post">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0 text-warning">
+                                    <i class="bi bi-person-dash"></i>
+                                </span>
+                                <select class="form-select form-select-sm border-start-0"
+                                        name="assegnatarioId" style="font-size:0.8rem;">
+                                    <option value="">— Non assegnato —</option>
+                                    <option th:each="op : ${operatori}"
+                                            th:value="${op.id}"
+                                            th:text="${op.nomeCompleto}">
+                                    </option>
+                                </select>
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+
                 <p class="small mb-1 mt-2" th:text="${intervento.descrizione}"></p>
 
                 <!-- Date e orari -->
                 <div class="d-flex flex-wrap gap-3 mt-1">
                     <span class="small text-muted" th:if="${intervento.dataProgrammata != null}">
-                        <i class="bi bi-calendar-event me-1"></i>Programmato:
+                        <i class="bi bi-calendar-event me-1"></i>
                         <span th:text="${#temporals.format(intervento.dataProgrammata, 'dd/MM/yyyy')}"></span>
                     </span>
                     <span class="small text-muted" th:if="${intervento.dataEsecuzione != null}">
-                        <i class="bi bi-calendar-check me-1"></i>Eseguito:
+                        <i class="bi bi-calendar-check me-1"></i>
                         <span th:text="${#temporals.format(intervento.dataEsecuzione, 'dd/MM/yyyy')}"></span>
                     </span>
                     <span class="small text-muted"
@@ -115,11 +182,15 @@
 
                 <!-- Azioni -->
                 <div class="d-flex justify-content-end gap-2 mt-2 pt-2 border-top">
-                    <a th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
+                    <!-- Operatore: può aprire scheda solo se assegnato -->
+                    <a th:if="${isAdmin or (intervento.assegnatario != null and intervento.assegnatario.username == #authentication.name)}"
+                       th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
                        class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-file-text me-1"></i>Apri scheda
                     </a>
-                    <form th:action="@{/interventi/{id}/elimina(id=${intervento.id})}" method="post"
+                    <!-- Delete — solo admin -->
+                    <form th:if="${isAdmin}"
+                          th:action="@{/interventi/{id}/elimina(id=${intervento.id})}" method="post"
                           onsubmit="return confirm('Eliminare questo intervento?')">
                         <button type="submit" class="btn btn-outline-danger btn-sm">
                             <i class="bi bi-trash"></i>
@@ -134,7 +205,8 @@
     <div th:if="${#lists.isEmpty(interventi)}" class="text-center py-5">
         <i class="bi bi-tools" style="font-size:2.5rem;color:#d1d5db;"></i>
         <p class="text-muted mt-2 mb-3">Nessun intervento registrato.</p>
-        <a th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
+        <a th:if="${isAdmin}"
+           th:href="@{/impianti/{id}/interventi/nuovo(id=${impianto.id})}" class="btn btn-ca-primary btn-sm">
             <i class="bi bi-plus-lg me-1"></i>Aggiungi il primo intervento
         </a>
     </div>

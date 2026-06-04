@@ -21,7 +21,8 @@
                th:text="${luogo.descrizione != null and !#strings.isEmpty(luogo.descrizione)} ? ${luogo.descrizione} : ''"
                th:if="${luogo.descrizione != null and !#strings.isEmpty(luogo.descrizione)}"></p>
         </div>
-        <a th:href="@{/luoghi/{id}/impianti/nuovo(id=${luogo.id})}" class="btn btn-ca-primary btn-sm flex-shrink-0">
+        <a th:if="${isAdmin}"
+           th:href="@{/luoghi/{id}/impianti/nuovo(id=${luogo.id})}" class="btn btn-ca-primary btn-sm flex-shrink-0">
             <i class="bi bi-plus-lg me-1"></i>Nuovo impianto
         </a>
     </div>
@@ -79,13 +80,12 @@
                         </div>
                     </a>
 
-                    <!-- Azioni -->
-                    <div class="d-flex justify-content-end gap-2 mt-2 pt-2 border-top">
+                    <!-- Azioni — solo admin -->
+                    <div th:if="${isAdmin}" class="d-flex justify-content-end gap-2 mt-2 pt-2 border-top">
                         <a th:href="@{/impianti/{id}/modifica(id=${item.impianto.id})}"
                            class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-pencil me-1"></i>Modifica
                         </a>
-                        <!-- Delete impianto -->
                         <form th:action="@{/impianti/{id}/elimina(id=${item.impianto.id})}" method="post"
                               onsubmit="return confirm('Eliminare l\'impianto e tutti i suoi interventi?')">
                             <button type="submit" class="btn btn-outline-danger btn-sm">

@@ -4,27 +4,26 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // Password temporanea: Ascensori2024!
-    // Per cambiarla, modificare il valore qui sotto e riavviare l'app.
-    private static final String ADMIN_PASSWORD = "Ascensori2024!";
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/img/**").permitAll()
+                // Sezione admin
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Creazione e modifica luoghi/impianti — solo admin
+                .requestMatchers("/luoghi/nuovo",
+                                 "/luoghi/*/impianti/nuovo",
+                                 "/impianti/*/modifica",
+                                 "/impianti/*/elimina").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginPage("/login")
@@ -35,16 +34,6 @@ public class SecurityConfig {
                 .permitAll());
 
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails admin = User.builder()
-            .username("admin")
-            .password(passwordEncoder().encode(ADMIN_PASSWORD))
-            .roles("ADMIN")
-            .build();
-        return new InMemoryUserDetailsManager(admin);
     }
 
     @Bean

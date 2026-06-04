@@ -1,13 +1,10 @@
 package com.francesco.gestione_ascensori.controller;
 
-import com.francesco.gestione_ascensori.model.Impianto;
-import com.francesco.gestione_ascensori.model.Intervento;
-import com.francesco.gestione_ascensori.model.Luogo;
-import com.francesco.gestione_ascensori.model.StatoImpianto;
-import com.francesco.gestione_ascensori.model.StatoIntervento;
+import com.francesco.gestione_ascensori.model.*;
 import com.francesco.gestione_ascensori.repository.ImpiantoRepository;
 import com.francesco.gestione_ascensori.repository.InterventoRepository;
 import com.francesco.gestione_ascensori.repository.LuogoRepository;
+import com.francesco.gestione_ascensori.repository.UtenteRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +18,15 @@ public class ImpiantoController {
     private final ImpiantoRepository impiantoRepository;
     private final InterventoRepository interventoRepository;
     private final LuogoRepository luogoRepository;
+    private final UtenteRepository utenteRepository;
 
     public ImpiantoController(ImpiantoRepository impiantoRepository,
-            InterventoRepository interventoRepository, LuogoRepository luogoRepository) {
+            InterventoRepository interventoRepository, LuogoRepository luogoRepository,
+            UtenteRepository utenteRepository) {
         this.impiantoRepository = impiantoRepository;
         this.interventoRepository = interventoRepository;
         this.luogoRepository = luogoRepository;
+        this.utenteRepository = utenteRepository;
     }
 
     @GetMapping("/impianti/{id}")
@@ -46,6 +46,7 @@ public class ImpiantoController {
         model.addAttribute("impianto", impianto);
         model.addAttribute("interventi", interventi);
         model.addAttribute("totaleCosti", totaleCosti);
+        model.addAttribute("operatori", utenteRepository.findByRuolo(RuoloUtente.OPERATORE));
         model.addAttribute("pageTitle", impianto.getNome());
         return "impianto-dettaglio";
     }
