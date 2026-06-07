@@ -1,6 +1,9 @@
 [build]
 builder = "nixpacks"
 
+[build.nixpacksPlan.variables]
+NIXPACKS_JDK_VERSION = "21"
+
 [deploy]
 startCommand = "java -Dspring.profiles.active=prod -jar target/gestione-ascensori-0.0.1-SNAPSHOT.jar"
 healthcheckPath = "/login"
