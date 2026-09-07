@@ -27,6 +27,10 @@ public class SecurityConfig {
                 // Download dei rapportini in Word — solo admin
                 .requestMatchers("/interventi/*/rapportino.docx").hasRole("ADMIN")
                 .anyRequest().authenticated())
+            // Pagina non consentita per il ruolo: si torna alla dashboard,
+            // niente pagina di errore
+            .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, negato) ->
+                response.sendRedirect(request.getContextPath() + "/")))
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/", true)
