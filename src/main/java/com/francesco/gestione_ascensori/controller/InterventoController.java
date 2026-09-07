@@ -4,28 +4,40 @@ import com.francesco.gestione_ascensori.model.*;
 import com.francesco.gestione_ascensori.repository.ImpiantoRepository;
 import com.francesco.gestione_ascensori.repository.InterventoRepository;
 import com.francesco.gestione_ascensori.repository.UtenteRepository;
+import com.francesco.gestione_ascensori.service.RapportinoWordService;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Controller
 public class InterventoController {
 
+    private static final MediaType TIPO_WORD =
+            MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
     private final ImpiantoRepository impiantoRepository;
     private final InterventoRepository interventoRepository;
     private final UtenteRepository utenteRepository;
+    private final RapportinoWordService rapportinoWordService;
 
     public InterventoController(ImpiantoRepository impiantoRepository,
             InterventoRepository interventoRepository,
-            UtenteRepository utenteRepository) {
+            UtenteRepository utenteRepository,
+            RapportinoWordService rapportinoWordService) {
         this.impiantoRepository = impiantoRepository;
         this.interventoRepository = interventoRepository;
         this.utenteRepository = utenteRepository;
+        this.rapportinoWordService = rapportinoWordService;
     }
 
     @GetMapping("/impianti/{impiantoId}/interventi/nuovo")
@@ -207,6 +219,25 @@ public class InterventoController {
         Long impiantoId = i.getImpianto().getId();
         interventoRepository.delete(i);
         return "redirect:/impianti/" + impiantoId;
+    }
+
+    // Download del rapportino in formato Word — riservato agli admin (vedi SecurityConfig)
+    @GetMapping("/interventi/{id}/rapportino.docx")
+    @ResponseBody
+    public ResponseEntity<byte[]> scaricaRapportinoWord(@PathVariable Long id) {
+        Intervento i = interventoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Intervento non trovato: " + id));
+
+        byte[] documento = rapportinoWordService.genera(i);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(TIPO_WORD);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename(rapportinoWordService.nomeFile(i), StandardCharsets.UTF_8)
+                .build());
+        headers.setCacheControl("no-store");
+
+        return ResponseEntity.ok().headers(headers).body(documento);
     }
 
     // ── helper ──────────────────────────────────────

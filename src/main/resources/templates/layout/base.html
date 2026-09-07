@@ -17,6 +17,7 @@
             --ca-red: #C73834;
             --ca-blue-dark: #1a3f71;
             --ca-red-dark: #a02e2a;
+            --ca-word: #2B579A;
         }
         body { background-color: #f4f6f9; font-size: 0.925rem; }
 
@@ -35,6 +36,11 @@
         .btn-ca-primary:hover { background-color: var(--ca-red-dark); color: #fff; }
         .btn-ca-secondary { background-color: var(--ca-blue); color: #fff; border: none; font-weight: 600; }
         .btn-ca-secondary:hover { background-color: var(--ca-blue-dark); color: #fff; }
+
+        /* Download rapportino in Word */
+        .btn-word { background-color: #fff; color: var(--ca-word); border: 1px solid var(--ca-word); font-weight: 600; }
+        .btn-word:hover, .btn-word:focus { background-color: var(--ca-word); color: #fff; border-color: var(--ca-word); }
+        .btn-word:focus { box-shadow: 0 0 0 3px rgba(43,87,154,0.18); }
 
         .page-title { color: var(--ca-blue); font-weight: 700; font-size: 1.15rem; }
 

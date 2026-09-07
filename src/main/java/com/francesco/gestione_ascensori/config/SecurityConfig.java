@@ -24,6 +24,8 @@ public class SecurityConfig {
                                  "/luoghi/*/impianti/nuovo",
                                  "/impianti/*/modifica",
                                  "/impianti/*/elimina").hasRole("ADMIN")
+                // Download dei rapportini in Word — solo admin
+                .requestMatchers("/interventi/*/rapportino.docx").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginPage("/login")

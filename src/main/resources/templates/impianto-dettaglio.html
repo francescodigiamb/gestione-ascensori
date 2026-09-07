@@ -209,6 +209,11 @@
 
                     <!-- Apri scheda + elimina -->
                     <div class="d-flex gap-2">
+                        <a th:if="${isAdmin and intervento.noteTecnico != null and !#strings.isEmpty(intervento.noteTecnico)}"
+                           th:href="@{/interventi/{id}/rapportino.docx(id=${intervento.id})}"
+                           class="btn btn-word btn-sm" title="Scarica il rapportino in Word">
+                            <i class="bi bi-file-earmark-word me-1"></i>Word
+                        </a>
                         <a th:if="${isAdmin or isAssegnato}"
                            th:href="@{/interventi/{id}/modifica(id=${intervento.id})}"
                            class="btn btn-outline-secondary btn-sm">

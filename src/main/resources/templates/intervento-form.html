@@ -133,6 +133,22 @@
                                   th:text="${mode == 'edit' and intervento != null} ? ${intervento.noteTecnico} : ''"></textarea>
                     </div>
 
+                    <!-- Download rapportino in Word — solo admin, solo se già salvato -->
+                    <div class="col-12"
+                         th:if="${isAdmin and mode == 'edit' and intervento != null
+                                  and intervento.noteTecnico != null and !#strings.isEmpty(intervento.noteTecnico)}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2 rounded-3"
+                             style="background:#f8f9fa;">
+                            <span class="small text-muted">
+                                <i class="bi bi-info-circle me-1"></i>Copia del rapportino salvato, da archiviare o inviare
+                            </span>
+                            <a th:href="@{/interventi/{id}/rapportino.docx(id=${intervento.id})}"
+                               class="btn btn-word btn-sm">
+                                <i class="bi bi-file-earmark-word me-1"></i>Scarica in Word
+                            </a>
+                        </div>
+                    </div>
+
                     <!-- Costo — solo admin -->
                     <div class="col-12 col-sm-5" th:if="${isAdmin}">
                         <label class="form-label">Costo (€)</label>
